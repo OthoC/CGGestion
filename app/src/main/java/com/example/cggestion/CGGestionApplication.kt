@@ -12,6 +12,7 @@ import com.example.cggestion.util.backup.BackupManager
 import com.example.cggestion.data.repository.ReportesRepository
 import com.example.cggestion.util.pdf.HojaCampoPdfGenerator
 import com.example.cggestion.data.repository.MantenimientoRepository
+import com.example.cggestion.data.repository.ActualizacionRepository
 
 class CGGestionApplication : Application() {
     private var databaseActual: CGGestionDatabase? = null
@@ -32,4 +33,5 @@ class CGGestionApplication : Application() {
     val reportesRepository get() = ReportesRepository(database())
     val hojaCampoPdfGenerator by lazy { HojaCampoPdfGenerator(applicationContext) }
     val mantenimientoRepository get() = MantenimientoRepository(database())
+    val actualizacionRepository by lazy { ActualizacionRepository(applicationContext) }
 }

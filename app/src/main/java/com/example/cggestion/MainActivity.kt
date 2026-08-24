@@ -28,6 +28,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,6 +52,7 @@ import com.example.cggestion.viewmodel.PdfViewModel
 import com.example.cggestion.viewmodel.HojaCampoViewModel
 import com.example.cggestion.ui.screens.hojascampo.PantallaHojasCampo
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.core.view.WindowCompat
 import com.example.cggestion.viewmodel.InventarioViewModel
 import com.example.cggestion.ui.screens.inventario.PantallaInventario
@@ -62,6 +65,8 @@ import com.example.cggestion.ui.screens.reportes.PantallaReportes
 import com.example.cggestion.viewmodel.HojaCampoPdfViewModel
 import com.example.cggestion.viewmodel.MantenimientoViewModel
 import com.example.cggestion.ui.screens.mantenimientos.PantallaMantenimientos
+import com.example.cggestion.viewmodel.ActualizacionViewModel
+import com.example.cggestion.ui.screens.actualizaciones.PantallaActualizaciones
 
 val FondoPrincipal = Color(0xFF0A0A0A)
 val FondoBarraSuperior = Color(0xFF161616)
@@ -81,13 +86,14 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Pantalla { INICIO, COTIZACIONES, HISTORIAL, HOJAS, INVENTARIO, CLIENTES, RESPALDOS, REPORTES, MANTENIMIENTOS }
+private enum class Pantalla { INICIO, COTIZACIONES, HISTORIAL, HOJAS, INVENTARIO, CLIENTES, RESPALDOS, REPORTES, MANTENIMIENTOS, ACTUALIZACIONES }
 
 @Composable
 fun AplicacionCG() {
     var pantallaActual by remember { mutableStateOf(Pantalla.INICIO) }
     var cotizacionEnEdicion by remember { mutableStateOf<Long?>(null) }
     var abrirHojaDesdeCotizacion by remember { mutableStateOf(false) }
+    var anuncioActualizacionCerrado by remember { mutableStateOf(false) }
     val app = LocalContext.current.applicationContext as CGGestionApplication
     val cotizacionViewModel: CotizacionViewModel = viewModel(factory = CotizacionViewModel.factory(app.repository))
     val historialViewModel: HistorialViewModel = viewModel(factory = HistorialViewModel.factory(app.repository))
@@ -99,6 +105,8 @@ fun AplicacionCG() {
     val reportesViewModel: ReportesViewModel = viewModel(factory = ReportesViewModel.factory(app.reportesRepository))
     val hojaPdfViewModel: HojaCampoPdfViewModel = viewModel(factory = HojaCampoPdfViewModel.factory(app.hojaCampoRepository, app.hojaCampoPdfGenerator))
     val mantenimientoViewModel: MantenimientoViewModel = viewModel(factory = MantenimientoViewModel.factory(app.mantenimientoRepository))
+    val actualizacionViewModel: ActualizacionViewModel = viewModel(factory = ActualizacionViewModel.factory(app.actualizacionRepository))
+    val estadoActualizacion by actualizacionViewModel.ui.collectAsStateWithLifecycle()
     when (pantallaActual) {
         Pantalla.INICIO -> PantallaInicio { opcion ->
             when (opcion.titulo) {
@@ -110,6 +118,7 @@ fun AplicacionCG() {
                 "Respaldos" -> pantallaActual = Pantalla.RESPALDOS
                 "Reportes" -> pantallaActual = Pantalla.REPORTES
                 "Mantenimientos" -> pantallaActual = Pantalla.MANTENIMIENTOS
+                "Actualizaciones" -> pantallaActual = Pantalla.ACTUALIZACIONES
             }
         }
         Pantalla.COTIZACIONES -> {
@@ -152,6 +161,17 @@ fun AplicacionCG() {
                 pantallaActual = Pantalla.HOJAS
             }
         }
+        Pantalla.ACTUALIZACIONES -> { BackHandler { pantallaActual = Pantalla.INICIO }; PantallaActualizaciones(actualizacionViewModel) { pantallaActual = Pantalla.INICIO } }
+    }
+    if (pantallaActual == Pantalla.INICIO && estadoActualizacion.disponible != null && !anuncioActualizacionCerrado) {
+        AlertDialog(
+            onDismissRequest = { anuncioActualizacionCerrado = true },
+            containerColor = FondoTarjeta,
+            title = { Text("Actualización disponible", color = Color.White) },
+            text = { Text("La versión ${estadoActualizacion.disponible!!.versionName} está disponible para CG Gestión.", color = Color.White) },
+            confirmButton = { TextButton(onClick = { anuncioActualizacionCerrado = true; pantallaActual = Pantalla.ACTUALIZACIONES }) { Text("VER", color = RojoCG) } },
+            dismissButton = { TextButton(onClick = { anuncioActualizacionCerrado = true }) { Text("MÁS TARDE", color = Color.White) } }
+        )
     }
 }
 
@@ -166,6 +186,7 @@ fun PantallaInicio(alSeleccionar: (OpcionInicio) -> Unit) {
         OpcionInicio("Historial", "Consultar registros anteriores", "HI"),
         OpcionInicio("Reportes", "Indicadores y alertas operativas", "RP"),
         OpcionInicio("Mantenimientos", "Agenda preventiva por equipos", "MT"),
+        OpcionInicio("Actualizaciones", "Buscar nueva versión de la app", "UP"),
         OpcionInicio("Respaldos", "Exportar Excel, PDF y fotografías", "RE")
     )
     Scaffold(containerColor = FondoPrincipal, topBar = {

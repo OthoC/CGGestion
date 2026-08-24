@@ -4,4 +4,5 @@
     <files-path name="evidencias" path="evidencias/" />
     <files-path name="respaldos" path="backups/" />
     <files-path name="hojas_campo_pdf" path="hojas_campo_pdf/" />
+    <cache-path name="updates" path="updates/" />
 </paths>
