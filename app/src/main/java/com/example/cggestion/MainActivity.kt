@@ -198,7 +198,7 @@ fun PantallaInicio(alSeleccionar: (OpcionInicio) -> Unit) {
                 }
                 Column(Modifier.padding(start = 12.dp)) {
                     Text("CG GESTIÓN", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Text("Trabajos y cotizaciones", color = TextoSecundario, fontSize = 11.sp)
+                    Text("Beta 1.6.1 · Actualizaciones remotas", color = TextoSecundario, fontSize = 11.sp)
                 }
             }
         })
