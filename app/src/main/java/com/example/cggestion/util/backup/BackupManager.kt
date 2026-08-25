@@ -52,7 +52,7 @@ class BackupManager(
             val propiedades = Properties().apply {
                 setProperty("formato", "CG_GESTION_BACKUP")
                 setProperty("version", "1")
-                setProperty("roomVersion", "11")
+                setProperty("roomVersion", "12")
                 setProperty("creadoEn", System.currentTimeMillis().toString())
             }
             zip.putNextEntry(ZipEntry("manifest.properties")); propiedades.store(zip, "CG Gestion backup"); zip.closeEntry()
@@ -139,7 +139,7 @@ class BackupManager(
             }
         }
         require(manifest?.getProperty("formato") == "CG_GESTION_BACKUP") { "El archivo no es un respaldo válido de CG Gestión." }
-        require((manifest?.getProperty("roomVersion")?.toIntOrNull() ?: 0) <= 11) { "El respaldo fue creado con una versión más reciente de la aplicación." }
+        require((manifest?.getProperty("roomVersion")?.toIntOrNull() ?: 0) <= 12) { "El respaldo fue creado con una versión más reciente de la aplicación." }
     }
     private fun copiarSiExiste(origen: File, destino: File) { if (origen.exists()) { destino.parentFile?.mkdirs(); origen.copyTo(destino, true) } }
     private fun copiarCarpeta(origen: File, destino: File) { if (origen.exists()) origen.copyRecursively(destino, overwrite = true) }
