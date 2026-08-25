@@ -236,10 +236,8 @@ class HojaCampoViewModel(private val repository: HojaCampoRepository) : ViewMode
         if (completar && estado.cliente.nombre.isBlank()) return mensajeError("Indica el cliente para completar la hoja.")
         if (completar && estado.hoja.tecnicos.isBlank()) return mensajeError("Indica al menos un técnico.")
         if (completar && estado.hoja.trabajosRealizados.isBlank() && estado.hoja.observaciones.isBlank()) return mensajeError("Registra el trabajo realizado u observaciones.")
-        if (completar && (estado.hoja.horaInicioPruebas.isBlank() != estado.hoja.horaFinPruebas.isBlank())) return mensajeError("Completa ambas horas de pruebas o déjalas vacías.")
         if (estado.mediciones.combustible.isNotBlank() && estado.mediciones.combustible.toDoubleOrNull()?.let { it !in 0.0..100.0 } != false) return mensajeError("El nivel de combustible debe estar entre 0 % y 100 %.")
         if (estado.hoja.horometro.isNotBlank() && estado.hoja.horometro.toDoubleOrNull()?.let { it < 0.0 } != false) return mensajeError("El horómetro no puede ser negativo.")
-        if (completar && horasInvalidas(estado.hoja.horaInicioPruebas, estado.hoja.horaFinPruebas)) return mensajeError("La hora final de pruebas no puede ser anterior a la inicial.")
 
         viewModelScope.launch {
             _ui.value = estado.copy(guardando = true, mensaje = null)
@@ -274,19 +272,6 @@ class HojaCampoViewModel(private val repository: HojaCampoRepository) : ViewMode
     }
 
     private fun mensajeError(texto: String) { _ui.value = _ui.value.copy(mensaje = texto) }
-
-    private fun horasInvalidas(inicio: String, fin: String): Boolean {
-        if (inicio.isBlank() || fin.isBlank()) return false
-        fun minutos(valor: String): Int? {
-            val partes = valor.split(":")
-            val hora = partes.getOrNull(0)?.toIntOrNull() ?: return null
-            val minuto = partes.getOrNull(1)?.toIntOrNull() ?: return null
-            return if (hora in 0..23 && minuto in 0..59) hora * 60 + minuto else null
-        }
-        val desde = minutos(inicio) ?: return true
-        val hasta = minutos(fin) ?: return true
-        return hasta < desde
-    }
 
     companion object {
         fun factory(repository: HojaCampoRepository) = object : ViewModelProvider.Factory {

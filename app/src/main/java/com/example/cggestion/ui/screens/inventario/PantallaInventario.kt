@@ -2,6 +2,8 @@ package com.example.cggestion.ui.screens.inventario
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -53,7 +55,7 @@ import java.util.Date
 private enum class FiltroInventario { TODOS, ACTIVOS, INACTIVOS, STOCK_BAJO }
 private data class ProductoEditado(val producto: ProductoEntity, val stockInicial: String)
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun PantallaInventario(viewModel: InventarioViewModel, volver: () -> Unit) {
     val productos by viewModel.productos.collectAsStateWithLifecycle()
@@ -97,9 +99,13 @@ fun PantallaInventario(viewModel: InventarioViewModel, volver: () -> Unit) {
                 colors = ButtonDefaults.buttonColors(containerColor = RojoCG)
             ) { Text("NUEVO PRODUCTO", color = Color.White) }
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(8.dp))
             CampoOscuro(busqueda, { busqueda = it }, "Buscar producto, código o categoría", modifier = Modifier.fillMaxWidth())
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
                 FiltroInventario.entries.forEach { opcion ->
                     OutlinedButton(onClick = { filtro = opcion }) {
                         Text(opcion.name, color = if (filtro == opcion) RojoCG else Color.White)
@@ -113,10 +119,14 @@ fun PantallaInventario(viewModel: InventarioViewModel, volver: () -> Unit) {
             if (filtrados.isEmpty()) {
                 Text("No se encontraron productos.", color = TextoSecundario, modifier = Modifier.padding(top = 20.dp))
             } else {
-                LazyColumn(modifier = Modifier.weight(1f).padding(top = 8.dp)) {
+                LazyColumn(
+                    modifier = Modifier.weight(1f).padding(top = 8.dp),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
                     items(filtrados, key = { it.id }) { producto ->
                         Card(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(containerColor = FondoTarjeta)
                         ) {
                             Column(Modifier.padding(12.dp)) {

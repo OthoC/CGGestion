@@ -65,6 +65,7 @@ import com.example.cggestion.RojoCG
 import com.example.cggestion.TextoSecundario
 import com.example.cggestion.data.HojaCampoValidaciones
 import com.example.cggestion.data.local.entity.EstadoHoja
+import com.example.cggestion.data.local.entity.EstadoControl
 import com.example.cggestion.data.local.entity.JornadaTrabajoEntity
 import com.example.cggestion.data.local.entity.RepuestoUsadoEntity
 import com.example.cggestion.data.local.entity.TipoEvidencia
@@ -426,6 +427,32 @@ private fun SeccionMediciones(vm: HojaCampoViewModel) {
     Campo("Nivel de refrigerante", s.mediciones.nivelRefrigerante) { actualizar { m -> m.copy(nivelRefrigerante = it) } }
     Campo("Voltaje de batería", s.mediciones.voltajeBateria, KeyboardType.Decimal) { actualizar { m -> m.copy(voltajeBateria = it) } }
     Campo("Combustible (%)", s.mediciones.combustible, KeyboardType.Decimal) { actualizar { m -> m.copy(combustible = it) } }
+    Text("CONTROLES", color = RojoCG, modifier = Modifier.padding(top = 12.dp))
+    SelectorControl("Limpieza de generador", s.mediciones.limpieza) { valor -> actualizar { m -> m.copy(limpieza = valor) } }
+    SelectorControl("Llenado de electrolitos", s.mediciones.electrolitos) { valor -> actualizar { m -> m.copy(electrolitos = valor) } }
+    SelectorControl("Mantenedor de batería", s.mediciones.mantenedorBateria) { valor -> actualizar { m -> m.copy(mantenedorBateria = valor) } }
+    SelectorControl("Precalentador de block", s.mediciones.precalentadorBlock) { valor -> actualizar { m -> m.copy(precalentadorBlock = valor) } }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SelectorControl(titulo: String, valor: String, cambiar: (String) -> Unit) {
+    Text(titulo, color = Color.White, modifier = Modifier.padding(top = 10.dp))
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        EstadoControl.entries.forEach { opcion ->
+            OutlinedButton(onClick = { cambiar(opcion.name) }) {
+                Text(
+                    text = when (opcion) {
+                        EstadoControl.NO_REVISADO -> "SIN REVISAR"
+                        EstadoControl.CORRECTO -> "CORRECTO"
+                        EstadoControl.REQUIERE_ATENCION -> "ATENCIÓN"
+                        EstadoControl.NO_APLICA -> "N/A"
+                    },
+                    color = if (valor == opcion.name) RojoCG else Color.White
+                )
+            }
+        }
+    }
 }
 
 @Composable

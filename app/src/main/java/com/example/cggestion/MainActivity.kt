@@ -31,6 +31,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,7 +41,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,6 +58,8 @@ import com.example.cggestion.ui.screens.hojascampo.PantallaHojasCampo
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.example.cggestion.viewmodel.InventarioViewModel
 import com.example.cggestion.ui.screens.inventario.PantallaInventario
 import com.example.cggestion.viewmodel.ClientesViewModel
@@ -67,6 +73,10 @@ import com.example.cggestion.viewmodel.MantenimientoViewModel
 import com.example.cggestion.ui.screens.mantenimientos.PantallaMantenimientos
 import com.example.cggestion.viewmodel.ActualizacionViewModel
 import com.example.cggestion.ui.screens.actualizaciones.PantallaActualizaciones
+import com.example.cggestion.ui.screens.administracion.PantallaAdministracion
+import com.example.cggestion.viewmodel.AuthViewModel
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 
 val FondoPrincipal = Color(0xFF0A0A0A)
 val FondoBarraSuperior = Color(0xFF161616)
@@ -86,7 +96,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Pantalla { INICIO, COTIZACIONES, HISTORIAL, HOJAS, INVENTARIO, CLIENTES, RESPALDOS, REPORTES, MANTENIMIENTOS, ACTUALIZACIONES }
+private enum class Pantalla { INICIO, COTIZACIONES, HISTORIAL, HOJAS, INVENTARIO, CLIENTES, RESPALDOS, REPORTES, MANTENIMIENTOS, ACTUALIZACIONES, ADMINISTRACION }
 
 @Composable
 fun AplicacionCG() {
@@ -94,6 +104,8 @@ fun AplicacionCG() {
     var cotizacionEnEdicion by remember { mutableStateOf<Long?>(null) }
     var abrirHojaDesdeCotizacion by remember { mutableStateOf(false) }
     var anuncioActualizacionCerrado by remember { mutableStateOf(false) }
+    var destinoProtegido by remember { mutableStateOf<Pantalla?>(null) }
+    var mostrarInicioSesion by remember { mutableStateOf(false) }
     val app = LocalContext.current.applicationContext as CGGestionApplication
     val cotizacionViewModel: CotizacionViewModel = viewModel(factory = CotizacionViewModel.factory(app.repository))
     val historialViewModel: HistorialViewModel = viewModel(factory = HistorialViewModel.factory(app.repository))
@@ -106,19 +118,49 @@ fun AplicacionCG() {
     val hojaPdfViewModel: HojaCampoPdfViewModel = viewModel(factory = HojaCampoPdfViewModel.factory(app.hojaCampoRepository, app.hojaCampoPdfGenerator))
     val mantenimientoViewModel: MantenimientoViewModel = viewModel(factory = MantenimientoViewModel.factory(app.mantenimientoRepository))
     val actualizacionViewModel: ActualizacionViewModel = viewModel(factory = ActualizacionViewModel.factory(app.actualizacionRepository))
+    val authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.factory(app.authRepository))
     val estadoActualizacion by actualizacionViewModel.ui.collectAsStateWithLifecycle()
+    val estadoAuth by authViewModel.ui.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, evento -> if (evento == Lifecycle.Event.ON_STOP) authViewModel.bloquear() }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    LaunchedEffect(estadoAuth.esAdministrador, destinoProtegido) {
+        if (estadoAuth.esAdministrador && destinoProtegido != null) {
+            pantallaActual = destinoProtegido!!
+            destinoProtegido = null
+        }
+    }
+    LaunchedEffect(estadoAuth.esAdministrador) {
+        if (estadoAuth.esAdministrador) mostrarInicioSesion = false
+    }
+    fun abrirModulo(pantalla: Pantalla) {
+        val protegido = pantalla in setOf(Pantalla.INVENTARIO, Pantalla.RESPALDOS, Pantalla.REPORTES, Pantalla.ACTUALIZACIONES, Pantalla.ADMINISTRACION)
+        if (protegido && !estadoAuth.esAdministrador) destinoProtegido = pantalla else pantallaActual = pantalla
+    }
+    LaunchedEffect(estadoAuth.esAdministrador, estadoAuth.configurado, pantallaActual) {
+        val protegido = pantallaActual in setOf(Pantalla.INVENTARIO, Pantalla.RESPALDOS, Pantalla.REPORTES, Pantalla.ACTUALIZACIONES, Pantalla.ADMINISTRACION)
+        if (estadoAuth.configurado && protegido && !estadoAuth.esAdministrador) pantallaActual = Pantalla.INICIO
+    }
     when (pantallaActual) {
-        Pantalla.INICIO -> PantallaInicio { opcion ->
+        Pantalla.INICIO -> PantallaInicio(
+            esAdministrador = estadoAuth.esAdministrador,
+            iniciarSesion = { mostrarInicioSesion = true },
+            cerrarSesion = authViewModel::bloquear
+        ) { opcion ->
             when (opcion.titulo) {
                 "Cotizaciones" -> { cotizacionEnEdicion = null; pantallaActual = Pantalla.COTIZACIONES }
                 "Historial" -> pantallaActual = Pantalla.HISTORIAL
                 "Hojas de campo" -> pantallaActual = Pantalla.HOJAS
-                "Inventario" -> pantallaActual = Pantalla.INVENTARIO
+                "Inventario" -> abrirModulo(Pantalla.INVENTARIO)
                 "Clientes" -> pantallaActual = Pantalla.CLIENTES
-                "Respaldos" -> pantallaActual = Pantalla.RESPALDOS
-                "Reportes" -> pantallaActual = Pantalla.REPORTES
+                "Respaldos" -> abrirModulo(Pantalla.RESPALDOS)
+                "Reportes" -> abrirModulo(Pantalla.REPORTES)
                 "Mantenimientos" -> pantallaActual = Pantalla.MANTENIMIENTOS
-                "Actualizaciones" -> pantallaActual = Pantalla.ACTUALIZACIONES
+                "Actualizaciones" -> abrirModulo(Pantalla.ACTUALIZACIONES)
+                "Administración" -> abrirModulo(Pantalla.ADMINISTRACION)
             }
         }
         Pantalla.COTIZACIONES -> {
@@ -151,7 +193,7 @@ fun AplicacionCG() {
         }
         Pantalla.INVENTARIO -> { BackHandler { pantallaActual = Pantalla.INICIO }; PantallaInventario(inventarioViewModel) { pantallaActual = Pantalla.INICIO } }
         Pantalla.CLIENTES -> { BackHandler { pantallaActual = Pantalla.INICIO }; PantallaClientes(clientesViewModel) { pantallaActual = Pantalla.INICIO } }
-        Pantalla.RESPALDOS -> { BackHandler { pantallaActual = Pantalla.INICIO }; PantallaRespaldos(respaldosViewModel) { pantallaActual = Pantalla.INICIO } }
+        Pantalla.RESPALDOS -> { BackHandler { pantallaActual = Pantalla.INICIO }; PantallaRespaldos(respaldosViewModel, authViewModel) { pantallaActual = Pantalla.INICIO } }
         Pantalla.REPORTES -> { BackHandler { pantallaActual = Pantalla.INICIO }; PantallaReportes(reportesViewModel) { pantallaActual = Pantalla.INICIO } }
         Pantalla.MANTENIMIENTOS -> {
             BackHandler { pantallaActual = Pantalla.INICIO }
@@ -162,6 +204,7 @@ fun AplicacionCG() {
             }
         }
         Pantalla.ACTUALIZACIONES -> { BackHandler { pantallaActual = Pantalla.INICIO }; PantallaActualizaciones(actualizacionViewModel) { pantallaActual = Pantalla.INICIO } }
+        Pantalla.ADMINISTRACION -> { BackHandler { pantallaActual = Pantalla.INICIO }; PantallaAdministracion(authViewModel) { pantallaActual = Pantalla.INICIO } }
     }
     if (pantallaActual == Pantalla.INICIO && estadoActualizacion.disponible != null && !anuncioActualizacionCerrado) {
         AlertDialog(
@@ -173,11 +216,32 @@ fun AplicacionCG() {
             dismissButton = { TextButton(onClick = { anuncioActualizacionCerrado = true }) { Text("MÁS TARDE", color = Color.White) } }
         )
     }
+    if (!estadoAuth.cargando && !estadoAuth.configurado) DialogoPrimerAdministrador(authViewModel)
+    destinoProtegido?.let { destino ->
+        DialogoAccesoAdministrador(destino, estadoAuth.cargando, estadoAuth.error, authViewModel::ingresar) {
+            destinoProtegido = null
+            authViewModel.limpiarError()
+        }
+    }
+    if (mostrarInicioSesion && !estadoAuth.esAdministrador) {
+        DialogoAccesoAdministrador(
+            destino = null,
+            cargando = estadoAuth.cargando,
+            error = estadoAuth.error,
+            ingresar = authViewModel::ingresar,
+            cancelar = { mostrarInicioSesion = false; authViewModel.limpiarError() }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PantallaInicio(alSeleccionar: (OpcionInicio) -> Unit) {
+fun PantallaInicio(
+    esAdministrador: Boolean,
+    iniciarSesion: () -> Unit,
+    cerrarSesion: () -> Unit,
+    alSeleccionar: (OpcionInicio) -> Unit
+) {
     val opciones = listOf(
         OpcionInicio("Hojas de campo", "Registrar trabajos y mediciones", "HC"),
         OpcionInicio("Cotizaciones", "Crear y consultar cotizaciones", "$") ,
@@ -188,7 +252,10 @@ fun PantallaInicio(alSeleccionar: (OpcionInicio) -> Unit) {
         OpcionInicio("Mantenimientos", "Agenda preventiva por equipos", "MT"),
         OpcionInicio("Actualizaciones", "Buscar nueva versión de la app", "UP"),
         OpcionInicio("Respaldos", "Exportar Excel, PDF y fotografías", "RE")
-    )
+    ).let { base ->
+        if (esAdministrador) base + OpcionInicio("Administración", "Usuarios y permisos", "AD")
+        else base.filter { it.titulo !in setOf("Inventario", "Reportes", "Actualizaciones", "Respaldos") }
+    }
     Scaffold(containerColor = FondoPrincipal, topBar = {
         Column {
         TopAppBar(colors = TopAppBarDefaults.topAppBarColors(containerColor = FondoBarraSuperior, titleContentColor = Color.White, navigationIconContentColor = Color.White), title = {
@@ -200,6 +267,10 @@ fun PantallaInicio(alSeleccionar: (OpcionInicio) -> Unit) {
                     Text("CG GESTIÓN", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     Text("Beta 1.6.1 · Actualizaciones remotas", color = TextoSecundario, fontSize = 11.sp)
                 }
+            }
+        }, actions = {
+            TextButton(onClick = if (esAdministrador) cerrarSesion else iniciarSesion) {
+                Text(if (esAdministrador) "CERRAR SESIÓN" else "INICIAR SESIÓN", color = RojoCG, fontSize = 11.sp)
             }
         })
         androidx.compose.material3.HorizontalDivider(thickness = 1.dp, color = RojoCG.copy(alpha = 0.6f))
@@ -230,6 +301,73 @@ private fun TarjetaOpcion(opcion: OpcionInicio, alSeleccionar: (OpcionInicio) ->
     }
 }
 
+@Composable
+private fun DialogoPrimerAdministrador(viewModel: AuthViewModel) {
+    val estado by viewModel.ui.collectAsStateWithLifecycle()
+    var usuario by remember { mutableStateOf("") }
+    var clave by remember { mutableStateOf("") }
+    var repetir by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = {},
+        containerColor = FondoTarjeta,
+        title = { Text("Configurar administrador", color = Color.White) },
+        text = {
+            Column {
+                Text("Crea la primera cuenta para proteger los módulos sensibles.", color = TextoSecundario)
+                CampoSeguro(usuario, { usuario = it }, "Usuario")
+                CampoSeguro(clave, { clave = it }, "Contraseña (mínimo 8 caracteres)", true)
+                CampoSeguro(repetir, { repetir = it }, "Repetir contraseña", true)
+                estado.error?.let { Text(it, color = RojoCG, modifier = Modifier.padding(top = 8.dp)) }
+            }
+        },
+        confirmButton = { TextButton(onClick = { viewModel.crearPrimerAdministrador(usuario, clave, repetir) }, enabled = !estado.cargando) { Text("GUARDAR", color = RojoCG) } }
+    )
+}
+
+@Composable
+private fun DialogoAccesoAdministrador(
+    destino: Pantalla?,
+    cargando: Boolean,
+    error: String?,
+    ingresar: (String, String) -> Unit,
+    cancelar: () -> Unit
+) {
+    var usuario by remember { mutableStateOf("") }
+    var clave by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = cancelar,
+        containerColor = FondoTarjeta,
+        title = { Text("Acceso de administrador", color = Color.White) },
+        text = {
+            Column {
+                Text(destino?.let { "Ingresa tus credenciales para abrir ${it.name.lowercase()}." } ?: "Ingresa tus credenciales de administrador.", color = TextoSecundario)
+                CampoSeguro(usuario, { usuario = it }, "Usuario")
+                CampoSeguro(clave, { clave = it }, "Contraseña", true)
+                error?.let { Text(it, color = RojoCG, modifier = Modifier.padding(top = 8.dp)) }
+            }
+        },
+        confirmButton = { TextButton(onClick = { ingresar(usuario, clave) }, enabled = !cargando) { Text("INGRESAR", color = RojoCG) } },
+        dismissButton = { TextButton(onClick = cancelar) { Text("CANCELAR", color = Color.White) } }
+    )
+}
+
+@Composable
+private fun CampoSeguro(valor: String, cambiar: (String) -> Unit, etiqueta: String, secreto: Boolean = false) = OutlinedTextField(
+    value = valor,
+    onValueChange = cambiar,
+    label = { Text(etiqueta) },
+    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+    visualTransformation = if (secreto) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
+    colors = OutlinedTextFieldDefaults.colors(
+        focusedTextColor = Color.White,
+        unfocusedTextColor = Color.White,
+        focusedLabelColor = RojoCG,
+        unfocusedLabelColor = TextoSecundario,
+        focusedBorderColor = RojoCG,
+        unfocusedBorderColor = TextoSecundario
+    )
+)
+
 @Preview(showBackground = true)
 @Composable
-fun PantallaInicioPreview() { CGGestionTheme { PantallaInicio {} } }
+fun PantallaInicioPreview() { CGGestionTheme { PantallaInicio(false, {}, {}) {} } }

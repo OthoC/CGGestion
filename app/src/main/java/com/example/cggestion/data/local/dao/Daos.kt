@@ -27,6 +27,17 @@ interface ClienteDao {
 }
 
 @Dao
+interface UsuarioDao {
+    @Insert(onConflict = OnConflictStrategy.ABORT) suspend fun insertar(usuario: UsuarioEntity): Long
+    @Update suspend fun actualizar(usuario: UsuarioEntity)
+    @Query("SELECT * FROM usuarios WHERE usuario = :usuario LIMIT 1") suspend fun porUsuario(usuario: String): UsuarioEntity?
+    @Query("SELECT * FROM usuarios WHERE id = :id LIMIT 1") suspend fun porId(id: Long): UsuarioEntity?
+    @Query("SELECT * FROM usuarios ORDER BY activo DESC, usuario") fun todos(): Flow<List<UsuarioEntity>>
+    @Query("SELECT COUNT(*) FROM usuarios") suspend fun cantidad(): Int
+    @Query("SELECT COUNT(*) FROM usuarios WHERE activo = 1 AND rol = 'ADMINISTRADOR'") suspend fun administradoresActivos(): Int
+}
+
+@Dao
 interface ProductoDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE) suspend fun insertarTodos(productos: List<ProductoEntity>)
     @Insert(onConflict = OnConflictStrategy.ABORT) suspend fun insertar(producto: ProductoEntity): Long
