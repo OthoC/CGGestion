@@ -41,82 +41,173 @@ import com.example.cggestion.FondoTarjeta
 import com.example.cggestion.RojoCG
 import com.example.cggestion.TextoSecundario
 import com.example.cggestion.viewmodel.RespaldosViewModel
-import com.example.cggestion.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PantallaRespaldos(viewModel: RespaldosViewModel, authViewModel: AuthViewModel, volver: () -> Unit) {
+fun PantallaRespaldos(
+    viewModel: RespaldosViewModel,
+    puedeRestaurar: Boolean,
+    volver: () -> Unit
+) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var confirmarRestauracion by remember { mutableStateOf<android.net.Uri?>(null) }
-    var autenticarRestauracion by remember { mutableStateOf<android.net.Uri?>(null) }
-    val abrir = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> uri?.let { confirmarRestauracion = it } }
-    val seleccionarCarpetaNube = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+    val abrir = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { confirmarRestauracion = it }
+    }
+    val seleccionarCarpetaNube = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
         uri?.let {
-            runCatching { context.contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION) }
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(
+                    it,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+            }
             viewModel.configurarCarpetaNube(it)
         }
     }
-    LaunchedEffect(estado.restaurado) { if (estado.restaurado) context.actividad()?.recreate() }
-    Scaffold(containerColor = FondoPrincipal, topBar = { Column {
-        TopAppBar(colors = TopAppBarDefaults.topAppBarColors(containerColor = FondoBarraSuperior, titleContentColor = Color.White), title = { Text("RESPALDOS") }, navigationIcon = { TextButton(onClick = volver) { Text("←", color = Color.White) } })
-        HorizontalDivider(color = RojoCG.copy(alpha = .6f))
-    } }) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
+
+    LaunchedEffect(estado.restaurado) {
+        if (estado.restaurado) context.actividad()?.recreate()
+    }
+
+    Scaffold(
+        containerColor = FondoPrincipal,
+        topBar = {
+            Column {
+                TopAppBar(
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = FondoBarraSuperior,
+                        titleContentColor = Color.White
+                    ),
+                    title = { Text("RESPALDOS") },
+                    navigationIcon = {
+                        TextButton(onClick = volver) { Text("←", color = Color.White) }
+                    }
+                )
+                HorizontalDivider(color = RojoCG.copy(alpha = .6f))
+            }
+        }
+    ) { padding ->
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp)
+        ) {
             Text("Respaldo local", color = Color.White)
-            Text("Incluye datos, PDF de cotizaciones y hojas de campo, además de evidencias fotográficas. El archivo contiene información privada.", color = TextoSecundario, modifier = Modifier.padding(top = 6.dp))
+            Text(
+                "Incluye datos, PDF de cotizaciones y hojas de campo, además de evidencias fotográficas. El archivo contiene información privada.",
+                color = TextoSecundario,
+                modifier = Modifier.padding(top = 6.dp)
+            )
             Spacer(Modifier.height(18.dp))
-            Button(onClick = viewModel::crear, enabled = !estado.trabajando, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = RojoCG)) { Text(if (estado.trabajando) "PROCESANDO…" else "CREAR RESPALDO") }
+            Button(
+                onClick = viewModel::crear,
+                enabled = !estado.trabajando,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = RojoCG)
+            ) { Text(if (estado.trabajando) "PROCESANDO…" else "CREAR RESPALDO") }
             estado.archivo?.let { archivo ->
-                OutlinedButton(onClick = { compartir(context, archivo) }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) { Text("COMPARTIR ÚLTIMO RESPALDO", color = Color.White) }
+                OutlinedButton(
+                    onClick = { compartir(context, archivo) },
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                ) { Text("COMPARTIR ÚLTIMO RESPALDO", color = Color.White) }
             }
             Spacer(Modifier.height(24.dp))
             Text("Copia en Google Drive", color = Color.White)
-            Text(if (estado.carpetaNubeConfigurada) "Carpeta configurada. Puedes subir el último respaldo cuando quieras." else "Elige una carpeta de Google Drive para habilitar la carga manual.", color = TextoSecundario, modifier = Modifier.padding(top = 6.dp))
-            OutlinedButton(onClick = { seleccionarCarpetaNube.launch(null) }, enabled = !estado.trabajando, modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) { Text(if (estado.carpetaNubeConfigurada) "CAMBIAR CARPETA DE DRIVE" else "ELEGIR CARPETA DE DRIVE", color = RojoCG) }
-            if (estado.carpetaNubeConfigurada) {
-                Button(onClick = viewModel::subirANube, enabled = !estado.trabajando, modifier = Modifier.fillMaxWidth().padding(top = 8.dp), colors = ButtonDefaults.buttonColors(containerColor = RojoCG)) { Text("SUBIR ÚLTIMO RESPALDO", color = Color.White) }
+            Text(
+                if (estado.carpetaNubeConfigurada) {
+                    "Carpeta configurada. Puedes subir el último respaldo cuando quieras."
+                } else {
+                    "Elige una carpeta de Google Drive para habilitar la carga manual."
+                },
+                color = TextoSecundario,
+                modifier = Modifier.padding(top = 6.dp)
+            )
+            OutlinedButton(
+                onClick = { seleccionarCarpetaNube.launch(null) },
+                enabled = !estado.trabajando,
+                modifier = Modifier.fillMaxWidth().padding(top = 10.dp)
+            ) {
+                Text(
+                    if (estado.carpetaNubeConfigurada) "CAMBIAR CARPETA DE DRIVE" else "ELEGIR CARPETA DE DRIVE",
+                    color = RojoCG
+                )
             }
-            Spacer(Modifier.height(24.dp))
-            Text("Restaurar", color = Color.White)
-            Text("La restauración reemplaza toda la información actual por la del respaldo seleccionado.", color = TextoSecundario, modifier = Modifier.padding(top = 6.dp))
-            OutlinedButton(onClick = { abrir.launch(arrayOf("application/zip", "application/octet-stream")) }, enabled = !estado.trabajando, modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) { Text("SELECCIONAR RESPALDO", color = RojoCG) }
+            if (estado.carpetaNubeConfigurada) {
+                Button(
+                    onClick = viewModel::subirANube,
+                    enabled = !estado.trabajando,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = RojoCG)
+                ) { Text("SUBIR ÚLTIMO RESPALDO", color = Color.White) }
+            }
+            if (puedeRestaurar) {
+                Spacer(Modifier.height(24.dp))
+                Text("Restaurar", color = Color.White)
+                Text(
+                    "La restauración reemplaza toda la información actual por la del respaldo seleccionado.",
+                    color = TextoSecundario,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
+                OutlinedButton(
+                    onClick = { abrir.launch(arrayOf("application/zip", "application/octet-stream")) },
+                    enabled = !estado.trabajando,
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
+                ) { Text("SELECCIONAR RESPALDO", color = RojoCG) }
+            }
             estado.mensaje?.let { Text(it, color = Color.White, modifier = Modifier.padding(top = 16.dp)) }
             estado.error?.let { Text(it, color = RojoCG, modifier = Modifier.padding(top = 16.dp)) }
         }
     }
-    confirmarRestauracion?.let { uri -> AlertDialog(onDismissRequest = { confirmarRestauracion = null }, containerColor = FondoTarjeta, title = { Text("¿Restaurar respaldo?", color = Color.White) }, text = { Text("Los datos actuales de la aplicación serán reemplazados. Esta acción no se puede deshacer.", color = Color.White) }, confirmButton = { TextButton(onClick = { confirmarRestauracion = null; autenticarRestauracion = uri }) { Text("CONTINUAR", color = RojoCG) } }, dismissButton = { TextButton(onClick = { confirmarRestauracion = null }) { Text("CANCELAR", color = Color.White) } }) }
-    autenticarRestauracion?.let { uri -> DialogoCredencialesRestauracion(
-        cancelar = { autenticarRestauracion = null },
-        validar = { usuario, clave, resultado -> authViewModel.validarAdministrador(usuario, clave, resultado) },
-        autorizado = { autenticarRestauracion = null; viewModel.restaurar(uri) }
-    ) }
-}
 
-@Composable
-private fun DialogoCredencialesRestauracion(cancelar: () -> Unit, validar: (String, String, (Boolean) -> Unit) -> Unit, autorizado: () -> Unit) {
-    var usuario by remember { mutableStateOf("") }
-    var clave by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
-    AlertDialog(onDismissRequest = cancelar, containerColor = FondoTarjeta, title = { Text("Confirmar administrador", color = Color.White) }, text = { Column {
-        Text("Vuelve a ingresar tus credenciales para restaurar el respaldo.", color = TextoSecundario)
-        androidx.compose.material3.OutlinedTextField(value = usuario, onValueChange = { usuario = it }, label = { Text("Usuario") }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp), colors = coloresCampo())
-        androidx.compose.material3.OutlinedTextField(value = clave, onValueChange = { clave = it }, label = { Text("Contraseña") }, visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth().padding(top = 8.dp), colors = coloresCampo())
-        error?.let { Text(it, color = RojoCG, modifier = Modifier.padding(top = 8.dp)) }
-    } }, confirmButton = { TextButton(onClick = { validar(usuario, clave) { correcto -> if (correcto) autorizado() else error = "Credenciales de administrador incorrectas." } }) { Text("RESTAURAR", color = RojoCG) } }, dismissButton = { TextButton(onClick = cancelar) { Text("CANCELAR", color = Color.White) } })
+    confirmarRestauracion?.takeIf { puedeRestaurar }?.let { uri ->
+        AlertDialog(
+            onDismissRequest = { confirmarRestauracion = null },
+            containerColor = FondoTarjeta,
+            title = { Text("¿Restaurar respaldo?", color = Color.White) },
+            text = {
+                Text(
+                    "Los datos actuales de la aplicación serán reemplazados. Esta acción no se puede deshacer.",
+                    color = Color.White
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmarRestauracion = null
+                    viewModel.restaurar(uri)
+                }) { Text("RESTAURAR", color = RojoCG) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmarRestauracion = null }) {
+                    Text("CANCELAR", color = Color.White)
+                }
+            }
+        )
+    }
 }
-
-@Composable
-private fun coloresCampo() = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-    focusedTextColor = Color.White, unfocusedTextColor = Color.White,
-    focusedLabelColor = RojoCG, unfocusedLabelColor = TextoSecundario,
-    focusedBorderColor = RojoCG, unfocusedBorderColor = TextoSecundario
-)
 
 private fun compartir(context: Context, archivo: java.io.File) {
     runCatching {
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", archivo)
-        context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("application/zip").putExtra(Intent.EXTRA_STREAM, uri).putExtra(Intent.EXTRA_SUBJECT, "Respaldo CG Gestión").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION), "Compartir respaldo").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        context.startActivity(
+            Intent.createChooser(
+                Intent(Intent.ACTION_SEND)
+                    .setType("application/zip")
+                    .putExtra(Intent.EXTRA_STREAM, uri)
+                    .putExtra(Intent.EXTRA_SUBJECT, "Respaldo CG Gestión")
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION),
+                "Compartir respaldo"
+            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
     }
 }
-private tailrec fun Context.actividad(): Activity? = when (this) { is Activity -> this; is ContextWrapper -> baseContext.actividad(); else -> null }
+
+private tailrec fun Context.actividad(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.actividad()
+    else -> null
+}

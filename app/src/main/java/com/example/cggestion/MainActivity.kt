@@ -1,7 +1,7 @@
 package com.example.cggestion
 
-import android.os.Bundle
 import android.graphics.Color as AndroidColor
+import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -21,17 +21,17 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,42 +41,42 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.cggestion.auth.ModuloRestringible
+import com.example.cggestion.auth.PerfilUsuario
+import com.example.cggestion.auth.PermisosUsuario
+import com.example.cggestion.auth.RolUsuarioFirebase
+import com.example.cggestion.ui.screens.actualizaciones.PantallaActualizaciones
+import com.example.cggestion.ui.screens.auth.PantallaCargaSesion
+import com.example.cggestion.ui.screens.auth.PantallaInicioSesion
+import com.example.cggestion.ui.screens.clientes.PantallaClientes
 import com.example.cggestion.ui.screens.cotizaciones.PantallaCotizaciones
 import com.example.cggestion.ui.screens.historial.PantallaHistorial
-import com.example.cggestion.ui.theme.CGGestionTheme
-import com.example.cggestion.viewmodel.CotizacionViewModel
-import com.example.cggestion.viewmodel.HistorialViewModel
-import com.example.cggestion.viewmodel.PdfViewModel
-import com.example.cggestion.viewmodel.HojaCampoViewModel
 import com.example.cggestion.ui.screens.hojascampo.PantallaHojasCampo
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.core.view.WindowCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import com.example.cggestion.viewmodel.InventarioViewModel
 import com.example.cggestion.ui.screens.inventario.PantallaInventario
-import com.example.cggestion.viewmodel.ClientesViewModel
-import com.example.cggestion.ui.screens.clientes.PantallaClientes
-import com.example.cggestion.viewmodel.RespaldosViewModel
-import com.example.cggestion.ui.screens.respaldos.PantallaRespaldos
-import com.example.cggestion.viewmodel.ReportesViewModel
-import com.example.cggestion.ui.screens.reportes.PantallaReportes
-import com.example.cggestion.viewmodel.HojaCampoPdfViewModel
-import com.example.cggestion.viewmodel.MantenimientoViewModel
 import com.example.cggestion.ui.screens.mantenimientos.PantallaMantenimientos
+import com.example.cggestion.ui.screens.reportes.PantallaReportes
+import com.example.cggestion.ui.screens.respaldos.PantallaRespaldos
+import com.example.cggestion.ui.theme.CGGestionTheme
 import com.example.cggestion.viewmodel.ActualizacionViewModel
-import com.example.cggestion.ui.screens.actualizaciones.PantallaActualizaciones
-import com.example.cggestion.ui.screens.administracion.PantallaAdministracion
-import com.example.cggestion.viewmodel.AuthViewModel
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import com.example.cggestion.viewmodel.ClientesViewModel
+import com.example.cggestion.viewmodel.CotizacionViewModel
+import com.example.cggestion.viewmodel.EstadoAutenticacion
+import com.example.cggestion.viewmodel.FirebaseAuthViewModel
+import com.example.cggestion.viewmodel.HistorialViewModel
+import com.example.cggestion.viewmodel.HojaCampoPdfViewModel
+import com.example.cggestion.viewmodel.HojaCampoViewModel
+import com.example.cggestion.viewmodel.InventarioViewModel
+import com.example.cggestion.viewmodel.MantenimientoViewModel
+import com.example.cggestion.viewmodel.PdfViewModel
+import com.example.cggestion.viewmodel.ReportesViewModel
+import com.example.cggestion.viewmodel.RespaldosViewModel
 
 val FondoPrincipal = Color(0xFF0A0A0A)
 val FondoBarraSuperior = Color(0xFF161616)
@@ -84,7 +84,12 @@ val FondoTarjeta = Color(0xFF181818)
 val RojoCG = Color(0xFFE02020)
 val TextoSecundario = Color(0xFF9E9E9E)
 
-data class OpcionInicio(val titulo: String, val descripcion: String, val simbolo: String)
+data class OpcionInicio(
+    val titulo: String,
+    val descripcion: String,
+    val simbolo: String,
+    val modulo: ModuloRestringible
+)
 
 class MainActivity : ComponentActivity() {
     @Suppress("DEPRECATION")
@@ -96,16 +101,48 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Pantalla { INICIO, COTIZACIONES, HISTORIAL, HOJAS, INVENTARIO, CLIENTES, RESPALDOS, REPORTES, MANTENIMIENTOS, ACTUALIZACIONES, ADMINISTRACION }
+private enum class Pantalla {
+    INICIO,
+    COTIZACIONES,
+    HISTORIAL,
+    HOJAS,
+    INVENTARIO,
+    CLIENTES,
+    RESPALDOS,
+    REPORTES,
+    MANTENIMIENTOS,
+    ACTUALIZACIONES
+}
 
 @Composable
 fun AplicacionCG() {
-    var pantallaActual by remember { mutableStateOf(Pantalla.INICIO) }
+    val app = LocalContext.current.applicationContext as CGGestionApplication
+    val authViewModel: FirebaseAuthViewModel = viewModel(
+        factory = FirebaseAuthViewModel.factory(app.firebaseAuthRepository)
+    )
+    val estado by authViewModel.estado.collectAsStateWithLifecycle()
+
+    when (val actual = estado) {
+        EstadoAutenticacion.Inicializando -> PantallaCargaSesion()
+        is EstadoAutenticacion.SinSesion -> PantallaInicioSesion(
+            estado = actual,
+            iniciarSesion = authViewModel::iniciarSesion,
+            recuperarClave = authViewModel::recuperarClave,
+            limpiarAvisos = authViewModel::limpiarAvisos
+        )
+        is EstadoAutenticacion.Autenticado -> AplicacionAutenticada(
+            perfil = actual.perfil,
+            cerrarSesion = authViewModel::cerrarSesion
+        )
+    }
+}
+
+@Composable
+private fun AplicacionAutenticada(perfil: PerfilUsuario, cerrarSesion: () -> Unit) {
+    var pantallaActual by remember(perfil.uid) { mutableStateOf(Pantalla.INICIO) }
     var cotizacionEnEdicion by remember { mutableStateOf<Long?>(null) }
     var abrirHojaDesdeCotizacion by remember { mutableStateOf(false) }
     var anuncioActualizacionCerrado by remember { mutableStateOf(false) }
-    var destinoProtegido by remember { mutableStateOf<Pantalla?>(null) }
-    var mostrarInicioSesion by remember { mutableStateOf(false) }
     val app = LocalContext.current.applicationContext as CGGestionApplication
     val cotizacionViewModel: CotizacionViewModel = viewModel(factory = CotizacionViewModel.factory(app.repository))
     val historialViewModel: HistorialViewModel = viewModel(factory = HistorialViewModel.factory(app.repository))
@@ -115,121 +152,134 @@ fun AplicacionCG() {
     val clientesViewModel: ClientesViewModel = viewModel(factory = ClientesViewModel.factory(app.clienteRepository))
     val respaldosViewModel: RespaldosViewModel = viewModel(factory = RespaldosViewModel.factory(app.backupManager))
     val reportesViewModel: ReportesViewModel = viewModel(factory = ReportesViewModel.factory(app.reportesRepository))
-    val hojaPdfViewModel: HojaCampoPdfViewModel = viewModel(factory = HojaCampoPdfViewModel.factory(app.hojaCampoRepository, app.hojaCampoPdfGenerator))
-    val mantenimientoViewModel: MantenimientoViewModel = viewModel(factory = MantenimientoViewModel.factory(app.mantenimientoRepository))
-    val actualizacionViewModel: ActualizacionViewModel = viewModel(factory = ActualizacionViewModel.factory(app.actualizacionRepository))
-    val authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.factory(app.authRepository))
+    val hojaPdfViewModel: HojaCampoPdfViewModel = viewModel(
+        factory = HojaCampoPdfViewModel.factory(app.hojaCampoRepository, app.hojaCampoPdfGenerator)
+    )
+    val mantenimientoViewModel: MantenimientoViewModel = viewModel(
+        factory = MantenimientoViewModel.factory(app.mantenimientoRepository)
+    )
+    val actualizacionViewModel: ActualizacionViewModel = viewModel(
+        factory = ActualizacionViewModel.factory(app.actualizacionRepository)
+    )
     val estadoActualizacion by actualizacionViewModel.ui.collectAsStateWithLifecycle()
-    val estadoAuth by authViewModel.ui.collectAsStateWithLifecycle()
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, evento -> if (evento == Lifecycle.Event.ON_STOP) authViewModel.bloquear() }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-    }
-    LaunchedEffect(estadoAuth.esAdministrador, destinoProtegido) {
-        if (estadoAuth.esAdministrador && destinoProtegido != null) {
-            pantallaActual = destinoProtegido!!
-            destinoProtegido = null
+
+    fun abrir(pantalla: Pantalla) {
+        val modulo = pantalla.moduloRestringible()
+        pantallaActual = if (modulo == null || PermisosUsuario.puedeAcceder(perfil, modulo)) {
+            pantalla
+        } else {
+            Pantalla.INICIO
         }
     }
-    LaunchedEffect(estadoAuth.esAdministrador) {
-        if (estadoAuth.esAdministrador) mostrarInicioSesion = false
+
+    val moduloActual = pantallaActual.moduloRestringible()
+    if (moduloActual != null && !PermisosUsuario.puedeAcceder(perfil, moduloActual)) {
+        LaunchedEffect(pantallaActual, perfil.rol) { pantallaActual = Pantalla.INICIO }
+        PantallaInicio(perfil, cerrarSesion) { abrir(it.pantallaDestino()) }
+        return
     }
-    fun abrirModulo(pantalla: Pantalla) {
-        val protegido = pantalla in setOf(Pantalla.INVENTARIO, Pantalla.RESPALDOS, Pantalla.REPORTES, Pantalla.ACTUALIZACIONES, Pantalla.ADMINISTRACION)
-        if (protegido && !estadoAuth.esAdministrador) destinoProtegido = pantalla else pantallaActual = pantalla
-    }
-    LaunchedEffect(estadoAuth.esAdministrador, estadoAuth.configurado, pantallaActual) {
-        val protegido = pantallaActual in setOf(Pantalla.INVENTARIO, Pantalla.RESPALDOS, Pantalla.REPORTES, Pantalla.ACTUALIZACIONES, Pantalla.ADMINISTRACION)
-        if (estadoAuth.configurado && protegido && !estadoAuth.esAdministrador) pantallaActual = Pantalla.INICIO
-    }
+
     when (pantallaActual) {
-        Pantalla.INICIO -> PantallaInicio(
-            esAdministrador = estadoAuth.esAdministrador,
-            iniciarSesion = { mostrarInicioSesion = true },
-            cerrarSesion = authViewModel::bloquear
-        ) { opcion ->
-            when (opcion.titulo) {
-                "Cotizaciones" -> { cotizacionEnEdicion = null; pantallaActual = Pantalla.COTIZACIONES }
-                "Historial" -> pantallaActual = Pantalla.HISTORIAL
-                "Hojas de campo" -> pantallaActual = Pantalla.HOJAS
-                "Inventario" -> abrirModulo(Pantalla.INVENTARIO)
-                "Clientes" -> pantallaActual = Pantalla.CLIENTES
-                "Respaldos" -> abrirModulo(Pantalla.RESPALDOS)
-                "Reportes" -> abrirModulo(Pantalla.REPORTES)
-                "Mantenimientos" -> pantallaActual = Pantalla.MANTENIMIENTOS
-                "Actualizaciones" -> abrirModulo(Pantalla.ACTUALIZACIONES)
-                "Administración" -> abrirModulo(Pantalla.ADMINISTRACION)
-            }
+        Pantalla.INICIO -> PantallaInicio(perfil, cerrarSesion) { opcion ->
+            if (opcion.modulo == ModuloRestringible.COTIZACIONES) cotizacionEnEdicion = null
+            abrir(opcion.pantallaDestino())
         }
         Pantalla.COTIZACIONES -> {
-            BackHandler { pantallaActual = Pantalla.INICIO }
+            BackHandler { abrir(Pantalla.INICIO) }
             PantallaCotizaciones(
                 cotizacionViewModel,
                 pdfViewModel,
                 cotizacionEnEdicion,
-                volver = { pantallaActual = Pantalla.INICIO },
-                crearHoja = { cotizacionId ->
-                    hojaViewModel.crearDesdeCotizacion(cotizacionId)
+                volver = { abrir(Pantalla.INICIO) },
+                crearHoja = { id ->
+                    hojaViewModel.crearDesdeCotizacion(id)
                     abrirHojaDesdeCotizacion = true
-                    pantallaActual = Pantalla.HOJAS
+                    abrir(Pantalla.HOJAS)
                 }
             )
         }
         Pantalla.HISTORIAL -> {
-            BackHandler { pantallaActual = Pantalla.INICIO }
-            PantallaHistorial(historialViewModel, pdfViewModel, volver = { pantallaActual = Pantalla.INICIO }, abrir = { id -> cotizacionEnEdicion = id; pantallaActual = Pantalla.COTIZACIONES })
+            BackHandler { abrir(Pantalla.INICIO) }
+            PantallaHistorial(
+                historialViewModel,
+                pdfViewModel,
+                volver = { abrir(Pantalla.INICIO) },
+                abrir = { id ->
+                    cotizacionEnEdicion = id
+                    abrir(Pantalla.COTIZACIONES)
+                }
+            )
         }
         Pantalla.HOJAS -> {
-            BackHandler { pantallaActual = Pantalla.INICIO }
+            BackHandler { abrir(Pantalla.INICIO) }
             PantallaHojasCampo(
-                viewModel = hojaViewModel,
-                pdfViewModel = hojaPdfViewModel,
-                volver = { pantallaActual = Pantalla.INICIO },
+                hojaViewModel,
+                hojaPdfViewModel,
+                volver = { abrir(Pantalla.INICIO) },
                 abrirFormularioInicial = abrirHojaDesdeCotizacion,
                 consumirAbrirFormulario = { abrirHojaDesdeCotizacion = false }
             )
         }
-        Pantalla.INVENTARIO -> { BackHandler { pantallaActual = Pantalla.INICIO }; PantallaInventario(inventarioViewModel) { pantallaActual = Pantalla.INICIO } }
-        Pantalla.CLIENTES -> { BackHandler { pantallaActual = Pantalla.INICIO }; PantallaClientes(clientesViewModel) { pantallaActual = Pantalla.INICIO } }
-        Pantalla.RESPALDOS -> { BackHandler { pantallaActual = Pantalla.INICIO }; PantallaRespaldos(respaldosViewModel, authViewModel) { pantallaActual = Pantalla.INICIO } }
-        Pantalla.REPORTES -> { BackHandler { pantallaActual = Pantalla.INICIO }; PantallaReportes(reportesViewModel) { pantallaActual = Pantalla.INICIO } }
+        Pantalla.INVENTARIO -> {
+            BackHandler { abrir(Pantalla.INICIO) }
+            PantallaInventario(inventarioViewModel) { abrir(Pantalla.INICIO) }
+        }
+        Pantalla.CLIENTES -> {
+            BackHandler { abrir(Pantalla.INICIO) }
+            PantallaClientes(clientesViewModel) { abrir(Pantalla.INICIO) }
+        }
+        Pantalla.RESPALDOS -> {
+            BackHandler { abrir(Pantalla.INICIO) }
+            PantallaRespaldos(
+                viewModel = respaldosViewModel,
+                puedeRestaurar = PermisosUsuario.puedeAcceder(perfil, ModuloRestringible.RESTAURAR_RESPALDO),
+                volver = { abrir(Pantalla.INICIO) }
+            )
+        }
+        Pantalla.REPORTES -> {
+            BackHandler { abrir(Pantalla.INICIO) }
+            PantallaReportes(reportesViewModel) { abrir(Pantalla.INICIO) }
+        }
         Pantalla.MANTENIMIENTOS -> {
-            BackHandler { pantallaActual = Pantalla.INICIO }
-            PantallaMantenimientos(mantenimientoViewModel, volver = { pantallaActual = Pantalla.INICIO }) { contexto ->
+            BackHandler { abrir(Pantalla.INICIO) }
+            PantallaMantenimientos(mantenimientoViewModel, volver = { abrir(Pantalla.INICIO) }) { contexto ->
                 hojaViewModel.crearDesdeMantenimiento(contexto)
                 abrirHojaDesdeCotizacion = true
-                pantallaActual = Pantalla.HOJAS
+                abrir(Pantalla.HOJAS)
             }
         }
-        Pantalla.ACTUALIZACIONES -> { BackHandler { pantallaActual = Pantalla.INICIO }; PantallaActualizaciones(actualizacionViewModel) { pantallaActual = Pantalla.INICIO } }
-        Pantalla.ADMINISTRACION -> { BackHandler { pantallaActual = Pantalla.INICIO }; PantallaAdministracion(authViewModel) { pantallaActual = Pantalla.INICIO } }
+        Pantalla.ACTUALIZACIONES -> {
+            BackHandler { abrir(Pantalla.INICIO) }
+            PantallaActualizaciones(actualizacionViewModel) { abrir(Pantalla.INICIO) }
+        }
     }
-    if (pantallaActual == Pantalla.INICIO && estadoActualizacion.disponible != null && !anuncioActualizacionCerrado) {
+
+    if (
+        pantallaActual == Pantalla.INICIO &&
+        estadoActualizacion.disponible != null &&
+        !anuncioActualizacionCerrado
+    ) {
         AlertDialog(
             onDismissRequest = { anuncioActualizacionCerrado = true },
             containerColor = FondoTarjeta,
             title = { Text("Actualización disponible", color = Color.White) },
-            text = { Text("La versión ${estadoActualizacion.disponible!!.versionName} está disponible para CG Gestión.", color = Color.White) },
-            confirmButton = { TextButton(onClick = { anuncioActualizacionCerrado = true; pantallaActual = Pantalla.ACTUALIZACIONES }) { Text("VER", color = RojoCG) } },
-            dismissButton = { TextButton(onClick = { anuncioActualizacionCerrado = true }) { Text("MÁS TARDE", color = Color.White) } }
-        )
-    }
-    if (!estadoAuth.cargando && !estadoAuth.configurado) DialogoPrimerAdministrador(authViewModel)
-    destinoProtegido?.let { destino ->
-        DialogoAccesoAdministrador(destino, estadoAuth.cargando, estadoAuth.error, authViewModel::ingresar) {
-            destinoProtegido = null
-            authViewModel.limpiarError()
-        }
-    }
-    if (mostrarInicioSesion && !estadoAuth.esAdministrador) {
-        DialogoAccesoAdministrador(
-            destino = null,
-            cargando = estadoAuth.cargando,
-            error = estadoAuth.error,
-            ingresar = authViewModel::ingresar,
-            cancelar = { mostrarInicioSesion = false; authViewModel.limpiarError() }
+            text = {
+                Text(
+                    "La versión ${estadoActualizacion.disponible!!.versionName} está disponible para CG Gestión.",
+                    color = Color.White
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    anuncioActualizacionCerrado = true
+                    abrir(Pantalla.ACTUALIZACIONES)
+                }) { Text("VER", color = RojoCG) }
+            },
+            dismissButton = {
+                TextButton(onClick = { anuncioActualizacionCerrado = true }) {
+                    Text("MÁS TARDE", color = Color.White)
+                }
+            }
         )
     }
 }
@@ -237,62 +287,92 @@ fun AplicacionCG() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaInicio(
-    esAdministrador: Boolean,
-    iniciarSesion: () -> Unit,
+    perfil: PerfilUsuario,
     cerrarSesion: () -> Unit,
     alSeleccionar: (OpcionInicio) -> Unit
 ) {
-    val opciones = listOf(
-        OpcionInicio("Hojas de campo", "Registrar trabajos y mediciones", "HC"),
-        OpcionInicio("Cotizaciones", "Crear y consultar cotizaciones", "$") ,
-        OpcionInicio("Clientes", "Administrar clientes y equipos", "CL"),
-        OpcionInicio("Inventario", "Productos, precios y repuestos", "IN"),
-        OpcionInicio("Historial", "Consultar registros anteriores", "HI"),
-        OpcionInicio("Reportes", "Indicadores y alertas operativas", "RP"),
-        OpcionInicio("Mantenimientos", "Agenda preventiva por equipos", "MT"),
-        OpcionInicio("Actualizaciones", "Buscar nueva versión de la app", "UP"),
-        OpcionInicio("Respaldos", "Exportar Excel, PDF y fotografías", "RE")
-    ).let { base ->
-        if (esAdministrador) base + OpcionInicio("Administración", "Usuarios y permisos", "AD")
-        else base.filter { it.titulo !in setOf("Inventario", "Reportes", "Actualizaciones", "Respaldos") }
-    }
-    Scaffold(containerColor = FondoPrincipal, topBar = {
-        Column {
-        TopAppBar(colors = TopAppBarDefaults.topAppBarColors(containerColor = FondoBarraSuperior, titleContentColor = Color.White, navigationIconContentColor = Color.White), title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(38.dp).background(RojoCG, RoundedCornerShape(8.dp)), contentAlignment = Alignment.Center) {
-                    Text("CG", color = Color.White, fontWeight = FontWeight.Bold)
-                }
-                Column(Modifier.padding(start = 12.dp)) {
-                    Text("CG GESTIÓN", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Text("Beta 1.6.1 · Actualizaciones remotas", color = TextoSecundario, fontSize = 11.sp)
-                }
+    val opciones = opcionesInicio().filter { PermisosUsuario.puedeAcceder(perfil, it.modulo) }
+    Scaffold(
+        containerColor = FondoPrincipal,
+        topBar = {
+            Column {
+                TopAppBar(
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = FondoBarraSuperior,
+                        titleContentColor = Color.White
+                    ),
+                    title = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                Modifier.size(38.dp).background(RojoCG, RoundedCornerShape(8.dp)),
+                                contentAlignment = Alignment.Center
+                            ) { Text("CG", color = Color.White, fontWeight = FontWeight.Bold) }
+                            Column(Modifier.padding(start = 12.dp)) {
+                                Text("CG GESTIÓN", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                Text("Versión ${BuildConfig.VERSION_NAME} · Sesión protegida", color = TextoSecundario, fontSize = 11.sp)
+                            }
+                        }
+                    },
+                    actions = {
+                        TextButton(onClick = cerrarSesion) {
+                            Text("SALIR", color = RojoCG, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                )
+                HorizontalDivider(thickness = 1.dp, color = RojoCG.copy(alpha = .6f))
             }
-        }, actions = {
-            TextButton(onClick = if (esAdministrador) cerrarSesion else iniciarSesion) {
-                Text(if (esAdministrador) "CERRAR SESIÓN" else "INICIAR SESIÓN", color = RojoCG, fontSize = 11.sp)
-            }
-        })
-        androidx.compose.material3.HorizontalDivider(thickness = 1.dp, color = RojoCG.copy(alpha = 0.6f))
         }
-    }) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 18.dp)) {
-            Spacer(Modifier.height(24.dp))
-            Text("Panel principal", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
-            Text("Selecciona el módulo que deseas utilizar", color = TextoSecundario, fontSize = 14.sp, modifier = Modifier.padding(top = 4.dp))
-            Spacer(Modifier.height(20.dp))
-            LazyVerticalGrid(columns = GridCells.Fixed(2), contentPadding = PaddingValues(bottom = 24.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(opciones) { TarjetaOpcion(it, alSeleccionar) }
+    ) { padding ->
+        Column(
+            Modifier.fillMaxSize().padding(padding).padding(horizontal = 18.dp)
+        ) {
+            Spacer(Modifier.height(18.dp))
+            Text("${perfil.nombre} · ${perfil.rol.nombreVisible()}", color = Color.White, fontWeight = FontWeight.Bold)
+            Text(perfil.email, color = TextoSecundario, fontSize = 12.sp)
+            Text("Panel principal", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 14.dp))
+            Text("Selecciona el módulo que deseas utilizar", color = TextoSecundario, fontSize = 14.sp)
+            Spacer(Modifier.height(16.dp))
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(bottom = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(opciones, key = { it.modulo.name }) { TarjetaOpcion(it, alSeleccionar) }
             }
         }
     }
 }
 
+private fun opcionesInicio() = listOf(
+    OpcionInicio("Hojas de campo", "Registrar trabajos y mediciones", "HC", ModuloRestringible.HOJAS_CAMPO),
+    OpcionInicio("Cotizaciones", "Crear y consultar cotizaciones", "$", ModuloRestringible.COTIZACIONES),
+    OpcionInicio("Clientes", "Administrar clientes y equipos", "CL", ModuloRestringible.CLIENTES),
+    OpcionInicio("Inventario", "Productos, precios y repuestos", "IN", ModuloRestringible.INVENTARIO),
+    OpcionInicio("Historial", "Consultar registros anteriores", "HI", ModuloRestringible.HISTORIAL),
+    OpcionInicio("Reportes", "Indicadores y alertas operativas", "RP", ModuloRestringible.REPORTES),
+    OpcionInicio("Mantenimientos", "Agenda preventiva por equipos", "MT", ModuloRestringible.MANTENIMIENTOS),
+    OpcionInicio("Actualizaciones", "Buscar nueva versión de la app", "UP", ModuloRestringible.ACTUALIZACIONES),
+    OpcionInicio("Respaldos", "Exportar copias y fotografías", "RE", ModuloRestringible.RESPALDOS)
+)
+
 @Composable
 private fun TarjetaOpcion(opcion: OpcionInicio, alSeleccionar: (OpcionInicio) -> Unit) {
-    Card(onClick = { alSeleccionar(opcion) }, modifier = Modifier.fillMaxWidth().height(165.dp), shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = FondoTarjeta)) {
-        Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.SpaceBetween) {
-            Box(Modifier.size(46.dp).background(RojoCG, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) { Text(opcion.simbolo, color = Color.White, fontWeight = FontWeight.Bold) }
+    Card(
+        onClick = { alSeleccionar(opcion) },
+        modifier = Modifier.fillMaxWidth().height(165.dp),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = FondoTarjeta)
+    ) {
+        Column(
+            Modifier.fillMaxSize().padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Box(
+                Modifier.size(46.dp).background(RojoCG, RoundedCornerShape(10.dp)),
+                contentAlignment = Alignment.Center
+            ) { Text(opcion.simbolo, color = Color.White, fontWeight = FontWeight.Bold) }
             Column {
                 Text(opcion.titulo, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Text(opcion.descripcion, color = TextoSecundario, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
@@ -301,73 +381,45 @@ private fun TarjetaOpcion(opcion: OpcionInicio, alSeleccionar: (OpcionInicio) ->
     }
 }
 
-@Composable
-private fun DialogoPrimerAdministrador(viewModel: AuthViewModel) {
-    val estado by viewModel.ui.collectAsStateWithLifecycle()
-    var usuario by remember { mutableStateOf("") }
-    var clave by remember { mutableStateOf("") }
-    var repetir by remember { mutableStateOf("") }
-    AlertDialog(
-        onDismissRequest = {},
-        containerColor = FondoTarjeta,
-        title = { Text("Configurar administrador", color = Color.White) },
-        text = {
-            Column {
-                Text("Crea la primera cuenta para proteger los módulos sensibles.", color = TextoSecundario)
-                CampoSeguro(usuario, { usuario = it }, "Usuario")
-                CampoSeguro(clave, { clave = it }, "Contraseña (mínimo 8 caracteres)", true)
-                CampoSeguro(repetir, { repetir = it }, "Repetir contraseña", true)
-                estado.error?.let { Text(it, color = RojoCG, modifier = Modifier.padding(top = 8.dp)) }
-            }
-        },
-        confirmButton = { TextButton(onClick = { viewModel.crearPrimerAdministrador(usuario, clave, repetir) }, enabled = !estado.cargando) { Text("GUARDAR", color = RojoCG) } }
-    )
+private fun Pantalla.moduloRestringible(): ModuloRestringible? = when (this) {
+    Pantalla.INICIO -> null
+    Pantalla.COTIZACIONES -> ModuloRestringible.COTIZACIONES
+    Pantalla.HISTORIAL -> ModuloRestringible.HISTORIAL
+    Pantalla.HOJAS -> ModuloRestringible.HOJAS_CAMPO
+    Pantalla.INVENTARIO -> ModuloRestringible.INVENTARIO
+    Pantalla.CLIENTES -> ModuloRestringible.CLIENTES
+    Pantalla.RESPALDOS -> ModuloRestringible.RESPALDOS
+    Pantalla.REPORTES -> ModuloRestringible.REPORTES
+    Pantalla.MANTENIMIENTOS -> ModuloRestringible.MANTENIMIENTOS
+    Pantalla.ACTUALIZACIONES -> ModuloRestringible.ACTUALIZACIONES
 }
 
-@Composable
-private fun DialogoAccesoAdministrador(
-    destino: Pantalla?,
-    cargando: Boolean,
-    error: String?,
-    ingresar: (String, String) -> Unit,
-    cancelar: () -> Unit
-) {
-    var usuario by remember { mutableStateOf("") }
-    var clave by remember { mutableStateOf("") }
-    AlertDialog(
-        onDismissRequest = cancelar,
-        containerColor = FondoTarjeta,
-        title = { Text("Acceso de administrador", color = Color.White) },
-        text = {
-            Column {
-                Text(destino?.let { "Ingresa tus credenciales para abrir ${it.name.lowercase()}." } ?: "Ingresa tus credenciales de administrador.", color = TextoSecundario)
-                CampoSeguro(usuario, { usuario = it }, "Usuario")
-                CampoSeguro(clave, { clave = it }, "Contraseña", true)
-                error?.let { Text(it, color = RojoCG, modifier = Modifier.padding(top = 8.dp)) }
-            }
-        },
-        confirmButton = { TextButton(onClick = { ingresar(usuario, clave) }, enabled = !cargando) { Text("INGRESAR", color = RojoCG) } },
-        dismissButton = { TextButton(onClick = cancelar) { Text("CANCELAR", color = Color.White) } }
-    )
+private fun OpcionInicio.pantallaDestino(): Pantalla = when (modulo) {
+    ModuloRestringible.HOJAS_CAMPO -> Pantalla.HOJAS
+    ModuloRestringible.COTIZACIONES -> Pantalla.COTIZACIONES
+    ModuloRestringible.HISTORIAL -> Pantalla.HISTORIAL
+    ModuloRestringible.CLIENTES -> Pantalla.CLIENTES
+    ModuloRestringible.MANTENIMIENTOS -> Pantalla.MANTENIMIENTOS
+    ModuloRestringible.RESPALDOS,
+    ModuloRestringible.RESTAURAR_RESPALDO -> Pantalla.RESPALDOS
+    ModuloRestringible.ACTUALIZACIONES -> Pantalla.ACTUALIZACIONES
+    ModuloRestringible.INVENTARIO -> Pantalla.INVENTARIO
+    ModuloRestringible.REPORTES -> Pantalla.REPORTES
 }
 
-@Composable
-private fun CampoSeguro(valor: String, cambiar: (String) -> Unit, etiqueta: String, secreto: Boolean = false) = OutlinedTextField(
-    value = valor,
-    onValueChange = cambiar,
-    label = { Text(etiqueta) },
-    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-    visualTransformation = if (secreto) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
-    colors = OutlinedTextFieldDefaults.colors(
-        focusedTextColor = Color.White,
-        unfocusedTextColor = Color.White,
-        focusedLabelColor = RojoCG,
-        unfocusedLabelColor = TextoSecundario,
-        focusedBorderColor = RojoCG,
-        unfocusedBorderColor = TextoSecundario
-    )
-)
+private fun RolUsuarioFirebase.nombreVisible(): String = when (this) {
+    RolUsuarioFirebase.SUPERUSUARIO -> "SUPERUSUARIO"
+    RolUsuarioFirebase.TECNICO -> "TÉCNICO"
+}
 
 @Preview(showBackground = true)
 @Composable
-fun PantallaInicioPreview() { CGGestionTheme { PantallaInicio(false, {}, {}) {} } }
+fun PantallaInicioPreview() {
+    CGGestionTheme {
+        PantallaInicio(
+            perfil = PerfilUsuario("preview", "tecnico@cgrepuestos.com", "Técnico", RolUsuarioFirebase.TECNICO, true),
+            cerrarSesion = {},
+            alSeleccionar = {}
+        )
+    }
+}

@@ -23,3 +23,6 @@ local.properties
 *.jks
 *.keystore
 /release/
+# Configuración local del proyecto Firebase. La APK contiene los recursos generados,
+# pero el archivo fuente no se publica en el repositorio público.
+/app/google-services.json

@@ -6,6 +6,12 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+// Permite compilar el proyecto antes de descargar la configuración real desde
+// Firebase Console. En cuanto exista app/google-services.json, el plugin se aplica.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 val signingProperties = Properties().apply {
     val archivo = rootProject.file("keystore.properties")
     if (archivo.exists()) archivo.inputStream().use(::load)
@@ -21,8 +27,8 @@ android {
         applicationId = "com.example.cggestion"
         minSdk = 26
         targetSdk = 37
-        versionCode = 10
-        versionName = "1.6.3-beta"
+        versionCode = 11
+        versionName = "1.7.0-beta"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -56,6 +62,7 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
+    implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
@@ -67,6 +74,9 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.coil.compose)
     implementation(libs.androidx.exifinterface)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
