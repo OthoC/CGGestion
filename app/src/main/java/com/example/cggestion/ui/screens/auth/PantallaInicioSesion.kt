@@ -1,6 +1,7 @@
 package com.example.cggestion.ui.screens.auth
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import com.example.cggestion.FondoPrincipal
+import com.example.cggestion.R
 import com.example.cggestion.RojoCG
 import com.example.cggestion.TextoSecundario
 import com.example.cggestion.viewmodel.EstadoAutenticacion
@@ -67,12 +69,11 @@ fun PantallaInicioSesion(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Box(
-                Modifier.size(76.dp).background(RojoCG, RoundedCornerShape(18.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("CG", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-            }
+            Image(
+                painter = painterResource(R.drawable.logo_cg),
+                contentDescription = "Logo de CG Gestión",
+                modifier = Modifier.size(96.dp)
+            )
             Spacer(Modifier.height(18.dp))
             Text("CG GESTIÓN", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold)
             Text("Acceso al sistema", color = TextoSecundario, fontSize = 14.sp)

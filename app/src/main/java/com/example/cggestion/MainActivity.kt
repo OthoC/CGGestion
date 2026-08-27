@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -303,10 +305,11 @@ fun PantallaInicio(
                     ),
                     title = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                Modifier.size(38.dp).background(RojoCG, RoundedCornerShape(8.dp)),
-                                contentAlignment = Alignment.Center
-                            ) { Text("CG", color = Color.White, fontWeight = FontWeight.Bold) }
+                            Image(
+                                painter = painterResource(R.drawable.logo_cg),
+                                contentDescription = "Logo de CG Gestión",
+                                modifier = Modifier.size(44.dp)
+                            )
                             Column(Modifier.padding(start = 12.dp)) {
                                 Text("CG GESTIÓN", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                                 Text("Versión ${BuildConfig.VERSION_NAME} · Sesión protegida", color = TextoSecundario, fontSize = 11.sp)
