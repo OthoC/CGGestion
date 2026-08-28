@@ -20,6 +20,16 @@ val signingProperties = Properties().apply {
     val archivo = rootProject.file("keystore.properties")
     if (archivo.exists()) archivo.inputStream().use(::load)
 }
+val releaseStoreFile = signingProperties.getProperty("storeFile")
+val releaseKeyAlias = signingProperties.getProperty("keyAlias")
+val releaseStorePassword = providers.environmentVariable("CGGESTION_STORE_PASSWORD").orNull
+val releaseKeyPassword = providers.environmentVariable("CGGESTION_KEY_PASSWORD").orNull
+val firmaReleaseDisponible = listOf(
+    releaseStoreFile,
+    releaseKeyAlias,
+    releaseStorePassword,
+    releaseKeyPassword
+).all { !it.isNullOrBlank() }
 
 android {
     namespace = "com.example.cggestion"
@@ -31,8 +41,8 @@ android {
         applicationId = "com.example.cggestion"
         minSdk = 26
         targetSdk = 37
-        versionCode = 12
-        versionName = "1.7.1-beta"
+        versionCode = 13
+        versionName = "1.8.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -42,12 +52,12 @@ android {
             optimization {
                 enable = false
             }
-            if (signingProperties.isNotEmpty()) {
+            if (firmaReleaseDisponible) {
                 signingConfig = signingConfigs.create("release") {
-                    storeFile = rootProject.file(signingProperties.getProperty("storeFile"))
-                    storePassword = signingProperties.getProperty("storePassword")
-                    keyAlias = signingProperties.getProperty("keyAlias")
-                    keyPassword = signingProperties.getProperty("keyPassword")
+                    storeFile = rootProject.file(releaseStoreFile!!)
+                    storePassword = releaseStorePassword
+                    keyAlias = releaseKeyAlias
+                    keyPassword = releaseKeyPassword
                 }
             }
         }
@@ -59,6 +69,18 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+}
+
+gradle.taskGraph.whenReady {
+    val solicitaRelease = allTasks.any { tarea ->
+        tarea.name.contains("Release", ignoreCase = true)
+    }
+    if (solicitaRelease && !firmaReleaseDisponible) {
+        throw GradleException(
+            "La compilación release requiere keystore.properties y las variables " +
+                "CGGESTION_STORE_PASSWORD y CGGESTION_KEY_PASSWORD."
+        )
     }
 }
 
