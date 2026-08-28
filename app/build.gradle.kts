@@ -12,6 +12,10 @@ if (file("google-services.json").exists()) {
     apply(plugin = "com.google.gms.google-services")
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 val signingProperties = Properties().apply {
     val archivo = rootProject.file("keystore.properties")
     if (archivo.exists()) archivo.inputStream().use(::load)

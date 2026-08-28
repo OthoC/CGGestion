@@ -30,8 +30,6 @@ import com.example.cggestion.FondoPrincipal
 import com.example.cggestion.FondoTarjeta
 import com.example.cggestion.RojoCG
 import com.example.cggestion.TextoSecundario
-import com.example.cggestion.data.local.entity.EstadoCotizacion
-import com.example.cggestion.data.local.entity.EstadoHoja
 import com.example.cggestion.viewmodel.PeriodoReporte
 import com.example.cggestion.viewmodel.ReportesViewModel
 import java.util.Locale
@@ -42,10 +40,7 @@ fun PantallaReportes(viewModel: ReportesViewModel, volver: () -> Unit) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val cotizaciones = estado.reporte.cotizaciones
     val hojas = estado.reporte.hojas
-    val aprobadas = cotizaciones
-        .filter { it.cotizacion.estado == EstadoCotizacion.APROBADA.name }
-        .sumOf { it.cotizacion.totalFinalCentavos }
-    val completadas = hojas.count { it.hoja.estado == EstadoHoja.COMPLETADA.name }
+    val metricas = estado.metricas
 
     Scaffold(
         containerColor = FondoPrincipal,
@@ -86,14 +81,23 @@ fun PantallaReportes(viewModel: ReportesViewModel, volver: () -> Unit) {
             item(key = "resumen-principal") {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TarjetaResumen("COTIZACIONES", cotizaciones.size.toString(), Modifier.weight(1f))
-                    TarjetaResumen("HOJAS COMPLETADAS", completadas.toString(), Modifier.weight(1f))
+                    TarjetaResumen("APROBADAS", metricas.cotizacionesAprobadas.toString(), Modifier.weight(1f))
                 }
             }
             item(key = "resumen-inventario") {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TarjetaResumen("APROBADO", moneda(aprobadas), Modifier.weight(1f))
-                    TarjetaResumen("STOCK BAJO", estado.reporte.stockBajo.size.toString(), Modifier.weight(1f))
+                    TarjetaResumen("VALOR APROBADO", moneda(metricas.valorAprobadoCentavos), Modifier.weight(1f))
+                    TarjetaResumen("HOJAS COMPLETADAS", metricas.hojasCompletadas.toString(), Modifier.weight(1f))
                 }
+            }
+            item(key = "resumen-operativo") {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TarjetaResumen("PENDIENTES", metricas.cotizacionesPendientes.toString(), Modifier.weight(1f))
+                    TarjetaResumen("STOCK BAJO", metricas.productosStockBajo.toString(), Modifier.weight(1f))
+                }
+            }
+            item(key = "resumen-inventario-valor") {
+                TarjetaResumen("VALOR DE INVENTARIO", moneda(metricas.valorInventarioCentavos), Modifier.fillMaxWidth())
             }
             item(key = "titulo-cotizaciones") { Text("COTIZACIONES RECIENTES", color = RojoCG) }
             items(cotizaciones.take(5), key = { "cotizacion-${it.cotizacion.id}" }) { cotizacion ->

@@ -28,7 +28,7 @@ import com.example.cggestion.data.local.dao.HojaCampoDao
 import com.example.cggestion.data.local.dao.EvidenciaDao
 import kotlin.math.roundToLong
 
-@Database(entities = [ClienteEntity::class, ProductoEntity::class, CotizacionEntity::class, ItemCotizacionEntity::class, HojaCampoEntity::class, MedicionesHojaCampoEntity::class, JornadaTrabajoEntity::class, EvidenciaEntity::class, MovimientoInventarioEntity::class, RepuestoUsadoEntity::class, ConsumoHojaInventarioEntity::class, EquipoEntity::class, MantenimientoEntity::class, UsuarioEntity::class], version = 13, exportSchema = false)
+@Database(entities = [ClienteEntity::class, ProductoEntity::class, CotizacionEntity::class, ItemCotizacionEntity::class, HojaCampoEntity::class, MedicionesHojaCampoEntity::class, JornadaTrabajoEntity::class, EvidenciaEntity::class, MovimientoInventarioEntity::class, RepuestoUsadoEntity::class, ConsumoHojaInventarioEntity::class, EquipoEntity::class, MantenimientoEntity::class, UsuarioEntity::class], version = 13, exportSchema = true)
 abstract class CGGestionDatabase : RoomDatabase() {
     abstract fun clienteDao(): ClienteDao
     abstract fun productoDao(): ProductoDao

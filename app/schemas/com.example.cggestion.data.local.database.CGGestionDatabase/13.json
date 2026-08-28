@@ -1,0 +1,1730 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 13,
+    "identityHash": "d4863aadae57439726aed4a53ccab652",
+    "entities": [
+      {
+        "tableName": "clientes",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `nombre` TEXT NOT NULL, `rucCedula` TEXT NOT NULL, `telefono` TEXT NOT NULL, `direccion` TEXT NOT NULL, `correoElectronico` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rucCedula",
+            "columnName": "rucCedula",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "telefono",
+            "columnName": "telefono",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "direccion",
+            "columnName": "direccion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "correoElectronico",
+            "columnName": "correoElectronico",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_clientes_rucCedula",
+            "unique": false,
+            "columnNames": [
+              "rucCedula"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_clientes_rucCedula` ON `${TABLE_NAME}` (`rucCedula`)"
+          }
+        ]
+      },
+      {
+        "tableName": "productos",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `codigo` TEXT, `nombre` TEXT NOT NULL, `categoria` TEXT NOT NULL, `precioPredeterminadoCentavos` INTEGER NOT NULL, `unidad` TEXT NOT NULL, `stockActual` REAL NOT NULL, `stockMinimo` REAL NOT NULL DEFAULT 0, `activo` INTEGER NOT NULL, `actualizadoEn` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "codigo",
+            "columnName": "codigo",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "categoria",
+            "columnName": "categoria",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "precioPredeterminadoCentavos",
+            "columnName": "precioPredeterminadoCentavos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "unidad",
+            "columnName": "unidad",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stockActual",
+            "columnName": "stockActual",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stockMinimo",
+            "columnName": "stockMinimo",
+            "affinity": "REAL",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "activo",
+            "columnName": "activo",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "actualizadoEn",
+            "columnName": "actualizadoEn",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_productos_nombre",
+            "unique": false,
+            "columnNames": [
+              "nombre"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_productos_nombre` ON `${TABLE_NAME}` (`nombre`)"
+          },
+          {
+            "name": "index_productos_codigo",
+            "unique": true,
+            "columnNames": [
+              "codigo"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_productos_codigo` ON `${TABLE_NAME}` (`codigo`)"
+          }
+        ]
+      },
+      {
+        "tableName": "cotizaciones",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `numeroCotizacion` TEXT NOT NULL, `clienteId` INTEGER NOT NULL, `fechaCreacion` INTEGER NOT NULL, `fechaValidez` INTEGER NOT NULL, `condicionPago` TEXT NOT NULL, `vendedor` TEXT NOT NULL, `observaciones` TEXT NOT NULL, `descuentoGlobalPorcentaje` REAL NOT NULL, `ivaPorcentaje` REAL NOT NULL, `subtotalBrutoCentavos` INTEGER NOT NULL, `descuentoItemsCentavos` INTEGER NOT NULL, `descuentoGlobalCentavos` INTEGER NOT NULL, `baseImponibleCentavos` INTEGER NOT NULL, `valorIvaCentavos` INTEGER NOT NULL, `totalFinalCentavos` INTEGER NOT NULL, `estado` TEXT NOT NULL, `fechaUltimaModificacion` INTEGER NOT NULL, FOREIGN KEY(`clienteId`) REFERENCES `clientes`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "numeroCotizacion",
+            "columnName": "numeroCotizacion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "clienteId",
+            "columnName": "clienteId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaCreacion",
+            "columnName": "fechaCreacion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaValidez",
+            "columnName": "fechaValidez",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "condicionPago",
+            "columnName": "condicionPago",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "vendedor",
+            "columnName": "vendedor",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observaciones",
+            "columnName": "observaciones",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "descuentoGlobalPorcentaje",
+            "columnName": "descuentoGlobalPorcentaje",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ivaPorcentaje",
+            "columnName": "ivaPorcentaje",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subtotalBrutoCentavos",
+            "columnName": "subtotalBrutoCentavos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "descuentoItemsCentavos",
+            "columnName": "descuentoItemsCentavos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "descuentoGlobalCentavos",
+            "columnName": "descuentoGlobalCentavos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "baseImponibleCentavos",
+            "columnName": "baseImponibleCentavos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "valorIvaCentavos",
+            "columnName": "valorIvaCentavos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalFinalCentavos",
+            "columnName": "totalFinalCentavos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "estado",
+            "columnName": "estado",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaUltimaModificacion",
+            "columnName": "fechaUltimaModificacion",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_cotizaciones_numeroCotizacion",
+            "unique": true,
+            "columnNames": [
+              "numeroCotizacion"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_cotizaciones_numeroCotizacion` ON `${TABLE_NAME}` (`numeroCotizacion`)"
+          },
+          {
+            "name": "index_cotizaciones_clienteId",
+            "unique": false,
+            "columnNames": [
+              "clienteId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_cotizaciones_clienteId` ON `${TABLE_NAME}` (`clienteId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "clientes",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "clienteId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "items_cotizacion",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `cotizacionId` INTEGER NOT NULL, `productoId` INTEGER NOT NULL, `nombreProducto` TEXT NOT NULL, `categoriaProducto` TEXT NOT NULL, `cantidad` INTEGER NOT NULL, `precioUnitarioCentavos` INTEGER NOT NULL, `descuentoPorcentaje` REAL NOT NULL, `subtotalCentavos` INTEGER NOT NULL, `descuentoCentavos` INTEGER NOT NULL, `totalLineaCentavos` INTEGER NOT NULL, FOREIGN KEY(`cotizacionId`) REFERENCES `cotizaciones`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`productoId`) REFERENCES `productos`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cotizacionId",
+            "columnName": "cotizacionId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "productoId",
+            "columnName": "productoId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombreProducto",
+            "columnName": "nombreProducto",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "categoriaProducto",
+            "columnName": "categoriaProducto",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cantidad",
+            "columnName": "cantidad",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "precioUnitarioCentavos",
+            "columnName": "precioUnitarioCentavos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "descuentoPorcentaje",
+            "columnName": "descuentoPorcentaje",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subtotalCentavos",
+            "columnName": "subtotalCentavos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "descuentoCentavos",
+            "columnName": "descuentoCentavos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalLineaCentavos",
+            "columnName": "totalLineaCentavos",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_items_cotizacion_cotizacionId",
+            "unique": false,
+            "columnNames": [
+              "cotizacionId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_items_cotizacion_cotizacionId` ON `${TABLE_NAME}` (`cotizacionId`)"
+          },
+          {
+            "name": "index_items_cotizacion_productoId",
+            "unique": false,
+            "columnNames": [
+              "productoId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_items_cotizacion_productoId` ON `${TABLE_NAME}` (`productoId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "cotizaciones",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "cotizacionId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "productos",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "productoId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "hojas_campo",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `numeroHoja` TEXT NOT NULL, `fecha` INTEGER NOT NULL, `clienteId` INTEGER NOT NULL, `cotizacionId` INTEGER, `equipoId` INTEGER, `estado` TEXT NOT NULL, `fechaCreacion` INTEGER NOT NULL, `fechaModificacion` INTEGER NOT NULL, `direccion` TEXT NOT NULL, `telefono` TEXT NOT NULL, `ordenTrabajo` TEXT NOT NULL, `tecnicos` TEXT NOT NULL, `alternadorMarca` TEXT NOT NULL, `alternadorModelo` TEXT NOT NULL, `alternadorSerie` TEXT NOT NULL, `rpm` TEXT NOT NULL, `kva` TEXT NOT NULL, `volt` TEXT NOT NULL, `kw` TEXT NOT NULL, `amp` TEXT NOT NULL, `hz` TEXT NOT NULL, `motorMarca` TEXT NOT NULL, `motorModelo` TEXT NOT NULL, `motorSerie` TEXT NOT NULL, `horometro` TEXT NOT NULL, `tipoTablero` TEXT NOT NULL, `trabajosRealizados` TEXT NOT NULL, `observaciones` TEXT NOT NULL, `horaInicioPruebas` TEXT NOT NULL, `horaFinPruebas` TEXT NOT NULL, `nombreClienteResponsable` TEXT NOT NULL, `estadoFirma` TEXT NOT NULL, `firmaClienteRuta` TEXT, FOREIGN KEY(`clienteId`) REFERENCES `clientes`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`cotizacionId`) REFERENCES `cotizaciones`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "numeroHoja",
+            "columnName": "numeroHoja",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fecha",
+            "columnName": "fecha",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "clienteId",
+            "columnName": "clienteId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cotizacionId",
+            "columnName": "cotizacionId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "equipoId",
+            "columnName": "equipoId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "estado",
+            "columnName": "estado",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaCreacion",
+            "columnName": "fechaCreacion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaModificacion",
+            "columnName": "fechaModificacion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "direccion",
+            "columnName": "direccion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "telefono",
+            "columnName": "telefono",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ordenTrabajo",
+            "columnName": "ordenTrabajo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tecnicos",
+            "columnName": "tecnicos",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "alternadorMarca",
+            "columnName": "alternadorMarca",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "alternadorModelo",
+            "columnName": "alternadorModelo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "alternadorSerie",
+            "columnName": "alternadorSerie",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rpm",
+            "columnName": "rpm",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kva",
+            "columnName": "kva",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "volt",
+            "columnName": "volt",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kw",
+            "columnName": "kw",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "amp",
+            "columnName": "amp",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hz",
+            "columnName": "hz",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "motorMarca",
+            "columnName": "motorMarca",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "motorModelo",
+            "columnName": "motorModelo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "motorSerie",
+            "columnName": "motorSerie",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "horometro",
+            "columnName": "horometro",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipoTablero",
+            "columnName": "tipoTablero",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "trabajosRealizados",
+            "columnName": "trabajosRealizados",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observaciones",
+            "columnName": "observaciones",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "horaInicioPruebas",
+            "columnName": "horaInicioPruebas",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "horaFinPruebas",
+            "columnName": "horaFinPruebas",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombreClienteResponsable",
+            "columnName": "nombreClienteResponsable",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "estadoFirma",
+            "columnName": "estadoFirma",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firmaClienteRuta",
+            "columnName": "firmaClienteRuta",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_hojas_campo_numeroHoja",
+            "unique": true,
+            "columnNames": [
+              "numeroHoja"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_hojas_campo_numeroHoja` ON `${TABLE_NAME}` (`numeroHoja`)"
+          },
+          {
+            "name": "index_hojas_campo_clienteId",
+            "unique": false,
+            "columnNames": [
+              "clienteId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_hojas_campo_clienteId` ON `${TABLE_NAME}` (`clienteId`)"
+          },
+          {
+            "name": "index_hojas_campo_cotizacionId",
+            "unique": false,
+            "columnNames": [
+              "cotizacionId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_hojas_campo_cotizacionId` ON `${TABLE_NAME}` (`cotizacionId`)"
+          },
+          {
+            "name": "index_hojas_campo_equipoId",
+            "unique": false,
+            "columnNames": [
+              "equipoId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_hojas_campo_equipoId` ON `${TABLE_NAME}` (`equipoId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "clientes",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "clienteId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "cotizaciones",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "cotizacionId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "mediciones_hoja_campo",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `hojaCampoId` INTEGER NOT NULL, `l1l2` TEXT NOT NULL, `l2l3` TEXT NOT NULL, `l3l1` TEXT NOT NULL, `ln` TEXT NOT NULL, `ampL1` TEXT NOT NULL, `ampL2` TEXT NOT NULL, `ampL3` TEXT NOT NULL, `hzVacio` TEXT NOT NULL, `hzCarga` TEXT NOT NULL, `rpmVacio` TEXT NOT NULL, `rpmCarga` TEXT NOT NULL, `presionAceite` TEXT NOT NULL, `temperaturaMotor` TEXT NOT NULL, `cargaAlternador` TEXT NOT NULL, `nivelAceite` TEXT NOT NULL, `nivelRefrigerante` TEXT NOT NULL, `voltajeBateria` TEXT NOT NULL, `combustible` TEXT NOT NULL, `limpieza` TEXT NOT NULL, `electrolitos` TEXT NOT NULL, `mantenedorBateria` TEXT NOT NULL, `precalentadorBlock` TEXT NOT NULL, FOREIGN KEY(`hojaCampoId`) REFERENCES `hojas_campo`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hojaCampoId",
+            "columnName": "hojaCampoId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "l1l2",
+            "columnName": "l1l2",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "l2l3",
+            "columnName": "l2l3",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "l3l1",
+            "columnName": "l3l1",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ln",
+            "columnName": "ln",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ampL1",
+            "columnName": "ampL1",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ampL2",
+            "columnName": "ampL2",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ampL3",
+            "columnName": "ampL3",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hzVacio",
+            "columnName": "hzVacio",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hzCarga",
+            "columnName": "hzCarga",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rpmVacio",
+            "columnName": "rpmVacio",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rpmCarga",
+            "columnName": "rpmCarga",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "presionAceite",
+            "columnName": "presionAceite",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "temperaturaMotor",
+            "columnName": "temperaturaMotor",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cargaAlternador",
+            "columnName": "cargaAlternador",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nivelAceite",
+            "columnName": "nivelAceite",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nivelRefrigerante",
+            "columnName": "nivelRefrigerante",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "voltajeBateria",
+            "columnName": "voltajeBateria",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "combustible",
+            "columnName": "combustible",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "limpieza",
+            "columnName": "limpieza",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "electrolitos",
+            "columnName": "electrolitos",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mantenedorBateria",
+            "columnName": "mantenedorBateria",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "precalentadorBlock",
+            "columnName": "precalentadorBlock",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_mediciones_hoja_campo_hojaCampoId",
+            "unique": true,
+            "columnNames": [
+              "hojaCampoId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_mediciones_hoja_campo_hojaCampoId` ON `${TABLE_NAME}` (`hojaCampoId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "hojas_campo",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "hojaCampoId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "jornadas_trabajo",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `hojaCampoId` INTEGER NOT NULL, `fecha` INTEGER NOT NULL, `horaInicio` TEXT NOT NULL, `horaFin` TEXT NOT NULL, `minutosTotales` INTEGER NOT NULL, `tecnicos` TEXT NOT NULL, `observacion` TEXT NOT NULL, FOREIGN KEY(`hojaCampoId`) REFERENCES `hojas_campo`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hojaCampoId",
+            "columnName": "hojaCampoId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fecha",
+            "columnName": "fecha",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "horaInicio",
+            "columnName": "horaInicio",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "horaFin",
+            "columnName": "horaFin",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "minutosTotales",
+            "columnName": "minutosTotales",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tecnicos",
+            "columnName": "tecnicos",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observacion",
+            "columnName": "observacion",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_jornadas_trabajo_hojaCampoId",
+            "unique": false,
+            "columnNames": [
+              "hojaCampoId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_jornadas_trabajo_hojaCampoId` ON `${TABLE_NAME}` (`hojaCampoId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "hojas_campo",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "hojaCampoId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "evidencias",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `hojaCampoId` INTEGER NOT NULL, `rutaInterna` TEXT NOT NULL, `nombreArchivo` TEXT NOT NULL, `descripcion` TEXT NOT NULL, `tipoEvidencia` TEXT NOT NULL, `fechaHoraCaptura` INTEGER NOT NULL, `fechaHoraRegistro` INTEGER NOT NULL, `orden` INTEGER NOT NULL, `tamanoBytes` INTEGER NOT NULL, `ancho` INTEGER, `alto` INTEGER, FOREIGN KEY(`hojaCampoId`) REFERENCES `hojas_campo`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hojaCampoId",
+            "columnName": "hojaCampoId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rutaInterna",
+            "columnName": "rutaInterna",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombreArchivo",
+            "columnName": "nombreArchivo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "descripcion",
+            "columnName": "descripcion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipoEvidencia",
+            "columnName": "tipoEvidencia",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaHoraCaptura",
+            "columnName": "fechaHoraCaptura",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaHoraRegistro",
+            "columnName": "fechaHoraRegistro",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "orden",
+            "columnName": "orden",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tamanoBytes",
+            "columnName": "tamanoBytes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ancho",
+            "columnName": "ancho",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "alto",
+            "columnName": "alto",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_evidencias_hojaCampoId",
+            "unique": false,
+            "columnNames": [
+              "hojaCampoId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_evidencias_hojaCampoId` ON `${TABLE_NAME}` (`hojaCampoId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "hojas_campo",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "hojaCampoId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "movimientos_inventario",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `productoId` INTEGER NOT NULL, `tipo` TEXT NOT NULL, `cantidad` REAL NOT NULL, `fecha` INTEGER NOT NULL, `observacion` TEXT NOT NULL, `stockResultante` REAL NOT NULL DEFAULT 0, FOREIGN KEY(`productoId`) REFERENCES `productos`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "productoId",
+            "columnName": "productoId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipo",
+            "columnName": "tipo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cantidad",
+            "columnName": "cantidad",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fecha",
+            "columnName": "fecha",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observacion",
+            "columnName": "observacion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stockResultante",
+            "columnName": "stockResultante",
+            "affinity": "REAL",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_movimientos_inventario_productoId",
+            "unique": false,
+            "columnNames": [
+              "productoId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_movimientos_inventario_productoId` ON `${TABLE_NAME}` (`productoId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "productos",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "productoId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "repuestos_usados",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `hojaCampoId` INTEGER NOT NULL, `productoId` INTEGER, `codigo` TEXT NOT NULL, `nombre` TEXT NOT NULL, `unidad` TEXT NOT NULL, `cantidad` REAL NOT NULL, `costoCentavos` INTEGER NOT NULL, FOREIGN KEY(`hojaCampoId`) REFERENCES `hojas_campo`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`productoId`) REFERENCES `productos`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hojaCampoId",
+            "columnName": "hojaCampoId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "productoId",
+            "columnName": "productoId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "codigo",
+            "columnName": "codigo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "unidad",
+            "columnName": "unidad",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cantidad",
+            "columnName": "cantidad",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "costoCentavos",
+            "columnName": "costoCentavos",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_repuestos_usados_hojaCampoId",
+            "unique": false,
+            "columnNames": [
+              "hojaCampoId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_repuestos_usados_hojaCampoId` ON `${TABLE_NAME}` (`hojaCampoId`)"
+          },
+          {
+            "name": "index_repuestos_usados_productoId",
+            "unique": false,
+            "columnNames": [
+              "productoId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_repuestos_usados_productoId` ON `${TABLE_NAME}` (`productoId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "hojas_campo",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "hojaCampoId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "productos",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "productoId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "consumos_hoja_inventario",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `hojaCampoId` INTEGER NOT NULL, `productoId` INTEGER NOT NULL, `cantidad` REAL NOT NULL, FOREIGN KEY(`hojaCampoId`) REFERENCES `hojas_campo`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`productoId`) REFERENCES `productos`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hojaCampoId",
+            "columnName": "hojaCampoId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "productoId",
+            "columnName": "productoId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cantidad",
+            "columnName": "cantidad",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_consumos_hoja_inventario_hojaCampoId",
+            "unique": false,
+            "columnNames": [
+              "hojaCampoId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_consumos_hoja_inventario_hojaCampoId` ON `${TABLE_NAME}` (`hojaCampoId`)"
+          },
+          {
+            "name": "index_consumos_hoja_inventario_productoId",
+            "unique": false,
+            "columnNames": [
+              "productoId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_consumos_hoja_inventario_productoId` ON `${TABLE_NAME}` (`productoId`)"
+          },
+          {
+            "name": "index_consumos_hoja_inventario_hojaCampoId_productoId",
+            "unique": true,
+            "columnNames": [
+              "hojaCampoId",
+              "productoId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_consumos_hoja_inventario_hojaCampoId_productoId` ON `${TABLE_NAME}` (`hojaCampoId`, `productoId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "hojas_campo",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "hojaCampoId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "productos",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "productoId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "equipos",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `clienteId` INTEGER NOT NULL, `tipo` TEXT NOT NULL, `marca` TEXT NOT NULL, `modelo` TEXT NOT NULL, `serie` TEXT, `potenciaKva` TEXT NOT NULL, `motorMarca` TEXT NOT NULL, `motorModelo` TEXT NOT NULL, `alternadorMarca` TEXT NOT NULL, `alternadorModelo` TEXT NOT NULL, `ubicacion` TEXT NOT NULL, `observaciones` TEXT NOT NULL, `activo` INTEGER NOT NULL, `actualizadoEn` INTEGER NOT NULL, FOREIGN KEY(`clienteId`) REFERENCES `clientes`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "clienteId",
+            "columnName": "clienteId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipo",
+            "columnName": "tipo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "marca",
+            "columnName": "marca",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "modelo",
+            "columnName": "modelo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "serie",
+            "columnName": "serie",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "potenciaKva",
+            "columnName": "potenciaKva",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "motorMarca",
+            "columnName": "motorMarca",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "motorModelo",
+            "columnName": "motorModelo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "alternadorMarca",
+            "columnName": "alternadorMarca",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "alternadorModelo",
+            "columnName": "alternadorModelo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ubicacion",
+            "columnName": "ubicacion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observaciones",
+            "columnName": "observaciones",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activo",
+            "columnName": "activo",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "actualizadoEn",
+            "columnName": "actualizadoEn",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_equipos_clienteId",
+            "unique": false,
+            "columnNames": [
+              "clienteId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_equipos_clienteId` ON `${TABLE_NAME}` (`clienteId`)"
+          },
+          {
+            "name": "index_equipos_serie",
+            "unique": true,
+            "columnNames": [
+              "serie"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_equipos_serie` ON `${TABLE_NAME}` (`serie`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "clientes",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "clienteId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "mantenimientos",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `clienteId` INTEGER NOT NULL, `equipoId` INTEGER NOT NULL, `tipo` TEXT NOT NULL, `descripcion` TEXT NOT NULL, `prioridad` TEXT NOT NULL, `fechaProgramada` INTEGER NOT NULL, `periodicidadDias` INTEGER, `estado` TEXT NOT NULL, `hojaCampoId` INTEGER, `fechaCreacion` INTEGER NOT NULL, `fechaModificacion` INTEGER NOT NULL, FOREIGN KEY(`clienteId`) REFERENCES `clientes`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`equipoId`) REFERENCES `equipos`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`hojaCampoId`) REFERENCES `hojas_campo`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "clienteId",
+            "columnName": "clienteId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "equipoId",
+            "columnName": "equipoId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipo",
+            "columnName": "tipo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "descripcion",
+            "columnName": "descripcion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "prioridad",
+            "columnName": "prioridad",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaProgramada",
+            "columnName": "fechaProgramada",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "periodicidadDias",
+            "columnName": "periodicidadDias",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "estado",
+            "columnName": "estado",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hojaCampoId",
+            "columnName": "hojaCampoId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "fechaCreacion",
+            "columnName": "fechaCreacion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaModificacion",
+            "columnName": "fechaModificacion",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_mantenimientos_clienteId",
+            "unique": false,
+            "columnNames": [
+              "clienteId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_mantenimientos_clienteId` ON `${TABLE_NAME}` (`clienteId`)"
+          },
+          {
+            "name": "index_mantenimientos_equipoId",
+            "unique": false,
+            "columnNames": [
+              "equipoId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_mantenimientos_equipoId` ON `${TABLE_NAME}` (`equipoId`)"
+          },
+          {
+            "name": "index_mantenimientos_hojaCampoId",
+            "unique": false,
+            "columnNames": [
+              "hojaCampoId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_mantenimientos_hojaCampoId` ON `${TABLE_NAME}` (`hojaCampoId`)"
+          },
+          {
+            "name": "index_mantenimientos_estado",
+            "unique": false,
+            "columnNames": [
+              "estado"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_mantenimientos_estado` ON `${TABLE_NAME}` (`estado`)"
+          },
+          {
+            "name": "index_mantenimientos_fechaProgramada",
+            "unique": false,
+            "columnNames": [
+              "fechaProgramada"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_mantenimientos_fechaProgramada` ON `${TABLE_NAME}` (`fechaProgramada`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "clientes",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "clienteId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "equipos",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "equipoId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "hojas_campo",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "hojaCampoId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "usuarios",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `usuario` TEXT NOT NULL, `passwordHash` TEXT NOT NULL, `sal` TEXT NOT NULL, `iteraciones` INTEGER NOT NULL, `rol` TEXT NOT NULL, `activo` INTEGER NOT NULL, `fechaCreacion` INTEGER NOT NULL, `fechaActualizacion` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "usuario",
+            "columnName": "usuario",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "passwordHash",
+            "columnName": "passwordHash",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sal",
+            "columnName": "sal",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "iteraciones",
+            "columnName": "iteraciones",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rol",
+            "columnName": "rol",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activo",
+            "columnName": "activo",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaCreacion",
+            "columnName": "fechaCreacion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaActualizacion",
+            "columnName": "fechaActualizacion",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_usuarios_usuario",
+            "unique": true,
+            "columnNames": [
+              "usuario"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_usuarios_usuario` ON `${TABLE_NAME}` (`usuario`)"
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd4863aadae57439726aed4a53ccab652')"
+    ]
+  }
+}

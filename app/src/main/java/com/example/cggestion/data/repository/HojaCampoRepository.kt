@@ -136,9 +136,8 @@ class HojaCampoRepository(
     }
 
     suspend fun siguienteNumero(): String {
-        var consecutivo = (hojas.ultimoNumero()?.filter(Char::isDigit)?.toIntOrNull() ?: 99) + 1
+        var consecutivo = siguienteConsecutivoHoja(hojas.ultimoNumero())
         while (true) {
-            if (consecutivo < 100) consecutivo = 100
             val candidato = "Q ${consecutivo.toString().padStart(7, '0')}"
             if (!hojas.existeNumero(candidato)) return candidato
             consecutivo++
@@ -256,3 +255,6 @@ class HojaCampoRepository(
         }
     }
 }
+
+internal fun siguienteConsecutivoHoja(ultimoNumero: String?): Int =
+    ((ultimoNumero?.filter(Char::isDigit)?.toIntOrNull() ?: 99) + 1).coerceAtLeast(100)
