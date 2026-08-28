@@ -1,8 +1,12 @@
 package com.example.cggestion.ui.screens.hojascampo
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Arrangement
@@ -52,11 +56,18 @@ import androidx.core.content.FileProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.cggestion.FondoBarraSuperior
 import com.example.cggestion.FondoPrincipal
@@ -75,6 +86,8 @@ import android.graphics.BitmapFactory
 import com.example.cggestion.data.local.entity.EvidenciaEntity
 import com.example.cggestion.viewmodel.HojaCampoViewModel
 import com.example.cggestion.viewmodel.HojaCampoPdfViewModel
+import com.example.cggestion.util.firma.PuntoFirma
+import com.example.cggestion.util.firma.TrazoFirma
 import java.text.DateFormat
 import java.util.Date
 import android.widget.Toast
@@ -253,7 +266,7 @@ private fun FormularioHoja(viewModel: HojaCampoViewModel, pdfViewModel: HojaCamp
                 3 -> SeccionTrabajo(viewModel)
                 4 -> SeccionRepuestos(viewModel, estado.repuestos)
                 5 -> SeccionJornadas(viewModel, estado.jornadas)
-                else -> { SeccionRevision(viewModel); SeccionEvidenciasMejorada(viewModel, seleccionarGaleria = {
+                else -> { SeccionRevision(viewModel); SeccionFirmaCliente(viewModel); SeccionEvidenciasMejorada(viewModel, seleccionarGaleria = {
                     if (viewModel.puedeAgregarEvidencias()) galeriaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 }) {
                     val ruta = viewModel.prepararCaptura()
@@ -599,6 +612,104 @@ private fun SeccionRevision(vm: HojaCampoViewModel) {
         }
     }
     Text("Las evidencias se guardan de forma privada en este dispositivo.", color = TextoSecundario, modifier = Modifier.padding(top = 16.dp))
+}
+
+@Composable
+private fun SeccionFirmaCliente(vm: HojaCampoViewModel) {
+    val estado by vm.ui.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    var capturar by remember { mutableStateOf(false) }
+    var confirmarEliminar by remember { mutableStateOf(false) }
+    val archivo = estado.hoja.firmaClienteRuta?.let { File(context.filesDir, it) }
+    TituloSeccion("FIRMA DE RECEPCIÓN")
+    when {
+        estado.hoja.id == 0L -> Text("Guarda primero la hoja para capturar la firma del cliente.", color = TextoSecundario)
+        archivo?.isFile == true -> {
+            AsyncImage(
+                model = archivo,
+                contentDescription = "Firma del cliente",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxWidth().height(110.dp).background(Color.White).border(1.dp, Color(0xFF555555))
+            )
+            Text("Firma del cliente registrada.", color = Color.White, modifier = Modifier.padding(top = 6.dp))
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+                OutlinedButton(onClick = { capturar = true }, enabled = !estado.procesandoFirma) { Text("REEMPLAZAR FIRMA") }
+                TextButton(onClick = { confirmarEliminar = true }, enabled = !estado.procesandoFirma) { Text("QUITAR FIRMA", color = RojoCG) }
+            }
+        }
+        else -> Button(
+            onClick = { capturar = true },
+            enabled = !estado.procesandoFirma,
+            colors = ButtonDefaults.buttonColors(containerColor = RojoCG),
+            modifier = Modifier.fillMaxWidth()
+        ) { Text(if (estado.procesandoFirma) "GUARDANDO FIRMA…" else "FIRMAR RECEPCIÓN") }
+    }
+    if (capturar) DialogoFirmaCliente(
+        procesando = estado.procesandoFirma,
+        guardar = { trazos -> vm.guardarFirmaCliente(trazos); capturar = false },
+        cancelar = { capturar = false }
+    )
+    if (confirmarEliminar) AlertDialog(
+        onDismissRequest = { confirmarEliminar = false },
+        containerColor = FondoTarjeta,
+        title = { Text("¿Quitar firma?", color = Color.White) },
+        text = { Text("La firma del cliente se eliminará de esta hoja y de futuros PDF.", color = Color.White) },
+        confirmButton = { TextButton(onClick = { vm.eliminarFirmaCliente(); confirmarEliminar = false }) { Text("QUITAR", color = RojoCG) } },
+        dismissButton = { TextButton(onClick = { confirmarEliminar = false }) { Text("CANCELAR", color = Color.White) } }
+    )
+}
+
+@Composable
+private fun DialogoFirmaCliente(procesando: Boolean, guardar: (List<TrazoFirma>) -> Unit, cancelar: () -> Unit) {
+    var trazos by remember { mutableStateOf<List<List<Offset>>>(emptyList()) }
+    var ancho by remember { mutableFloatStateOf(0f) }
+    var alto by remember { mutableFloatStateOf(0f) }
+    AlertDialog(
+        onDismissRequest = { if (!procesando) cancelar() },
+        containerColor = FondoTarjeta,
+        title = { Text("Firma del cliente", color = Color.White) },
+        text = {
+            Column {
+                Text("Firme dentro del recuadro con el dedo.", color = TextoSecundario)
+                Spacer(Modifier.height(10.dp))
+                Canvas(
+                    modifier = Modifier.fillMaxWidth().height(190.dp).background(Color.White).border(1.dp, Color(0xFF555555))
+                        .onSizeChanged { ancho = it.width.toFloat(); alto = it.height.toFloat() }
+                        .pointerInput(Unit) {
+                            detectDragGestures(
+                                onDragStart = { inicio -> trazos = trazos + listOf(listOf(inicio)) },
+                                onDrag = { cambio, _ ->
+                                    val ultimo = trazos.lastOrNull().orEmpty()
+                                    trazos = if (ultimo.isEmpty()) trazos else trazos.dropLast(1) + listOf(ultimo + cambio.position)
+                                }
+                            )
+                        }
+                ) {
+                    trazos.forEach { puntos ->
+                        if (puntos.size == 1) drawCircle(Color(0xFF192127), 3.5f, puntos.first())
+                        else {
+                            val ruta = Path().apply {
+                                moveTo(puntos.first().x, puntos.first().y)
+                                puntos.drop(1).forEach { lineTo(it.x, it.y) }
+                            }
+                            drawPath(ruta, Color(0xFF192127), style = Stroke(5f, cap = StrokeCap.Round, join = StrokeJoin.Round))
+                        }
+                    }
+                }
+                TextButton(onClick = { trazos = emptyList() }, enabled = !procesando) { Text("LIMPIAR", color = RojoCG) }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = trazos.any { it.isNotEmpty() } && ancho > 0 && alto > 0 && !procesando,
+                onClick = {
+                    val normalizados = trazos.map { trazo -> trazo.map { PuntoFirma(it.x / ancho, it.y / alto) } }
+                    guardar(normalizados)
+                }
+            ) { Text("GUARDAR FIRMA", color = RojoCG) }
+        },
+        dismissButton = { TextButton(onClick = cancelar, enabled = !procesando) { Text("CANCELAR", color = Color.White) } }
+    )
 }
 
 @Composable

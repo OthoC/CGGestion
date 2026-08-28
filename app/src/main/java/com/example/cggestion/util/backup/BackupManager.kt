@@ -52,7 +52,7 @@ class BackupManager(
             val propiedades = Properties().apply {
                 setProperty("formato", "CG_GESTION_BACKUP")
                 setProperty("version", "1")
-                setProperty("roomVersion", "12")
+                setProperty("roomVersion", "13")
                 setProperty("creadoEn", System.currentTimeMillis().toString())
             }
             zip.putNextEntry(ZipEntry("manifest.properties")); propiedades.store(zip, "CG Gestion backup"); zip.closeEntry()
@@ -62,6 +62,7 @@ class BackupManager(
             agregarCarpeta(zip, File(raiz, "cotizaciones"), "cotizaciones")
             agregarCarpeta(zip, File(raiz, "hojas_campo_pdf"), "hojas_campo_pdf")
             agregarCarpeta(zip, File(raiz, "evidencias"), "evidencias")
+            agregarCarpeta(zip, File(raiz, "firmas_hoja_campo"), "firmas_hoja_campo")
         }
         return BackupResultado(archivo)
     }
@@ -84,6 +85,7 @@ class BackupManager(
             copiarCarpeta(File(raiz, "cotizaciones"), File(recuperacion, "cotizaciones"))
             copiarCarpeta(File(raiz, "hojas_campo_pdf"), File(recuperacion, "hojas_campo_pdf"))
             copiarCarpeta(File(raiz, "evidencias"), File(recuperacion, "evidencias"))
+            copiarCarpeta(File(raiz, "firmas_hoja_campo"), File(recuperacion, "firmas_hoja_campo"))
             try {
                 cerrarBase()
                 baseDatos.parentFile?.mkdirs()
@@ -94,6 +96,7 @@ class BackupManager(
                 reemplazarCarpeta(File(staging, "cotizaciones"), File(raiz, "cotizaciones"))
                 reemplazarCarpeta(File(staging, "hojas_campo_pdf"), File(raiz, "hojas_campo_pdf"))
                 reemplazarCarpeta(File(staging, "evidencias"), File(raiz, "evidencias"))
+                reemplazarCarpeta(File(staging, "firmas_hoja_campo"), File(raiz, "firmas_hoja_campo"))
             } catch (error: Throwable) {
                 restaurarRecuperacion(recuperacion)
                 throw error
@@ -123,7 +126,7 @@ class BackupManager(
             var item = entrada.nextEntry
             while (item != null) {
                 val nombre = item.name.replace('\\', '/')
-                require(nombre == "manifest.properties" || nombre.startsWith("database/") || nombre.startsWith("cotizaciones/") || nombre.startsWith("hojas_campo_pdf/") || nombre.startsWith("evidencias/")) { "El respaldo contiene rutas no permitidas." }
+                require(nombre == "manifest.properties" || nombre.startsWith("database/") || nombre.startsWith("cotizaciones/") || nombre.startsWith("hojas_campo_pdf/") || nombre.startsWith("evidencias/") || nombre.startsWith("firmas_hoja_campo/")) { "El respaldo contiene rutas no permitidas." }
                 require(!nombre.contains("../") && !nombre.startsWith('/')) { "El respaldo contiene una ruta insegura." }
                 if (!item.isDirectory) {
                     val archivo = File(destino, nombre)
@@ -139,7 +142,7 @@ class BackupManager(
             }
         }
         require(manifest?.getProperty("formato") == "CG_GESTION_BACKUP") { "El archivo no es un respaldo válido de CG Gestión." }
-        require((manifest?.getProperty("roomVersion")?.toIntOrNull() ?: 0) <= 12) { "El respaldo fue creado con una versión más reciente de la aplicación." }
+        require((manifest?.getProperty("roomVersion")?.toIntOrNull() ?: 0) <= 13) { "El respaldo fue creado con una versión más reciente de la aplicación." }
     }
     private fun copiarSiExiste(origen: File, destino: File) { if (origen.exists()) { destino.parentFile?.mkdirs(); origen.copyTo(destino, true) } }
     private fun copiarCarpeta(origen: File, destino: File) { if (origen.exists()) origen.copyRecursively(destino, overwrite = true) }
@@ -148,7 +151,7 @@ class BackupManager(
         copiarSiExiste(File(origen, "cg_gestion.db"), baseDatos)
         copiarSiExiste(File(origen, "cg_gestion.db-wal"), File(baseDatos.path + "-wal"))
         copiarSiExiste(File(origen, "cg_gestion.db-shm"), File(baseDatos.path + "-shm"))
-        reemplazarCarpeta(File(origen, "cotizaciones"), File(raiz, "cotizaciones")); reemplazarCarpeta(File(origen, "hojas_campo_pdf"), File(raiz, "hojas_campo_pdf")); reemplazarCarpeta(File(origen, "evidencias"), File(raiz, "evidencias"))
+        reemplazarCarpeta(File(origen, "cotizaciones"), File(raiz, "cotizaciones")); reemplazarCarpeta(File(origen, "hojas_campo_pdf"), File(raiz, "hojas_campo_pdf")); reemplazarCarpeta(File(origen, "evidencias"), File(raiz, "evidencias")); reemplazarCarpeta(File(origen, "firmas_hoja_campo"), File(raiz, "firmas_hoja_campo"))
     }
     private companion object { const val TAMANO_MAXIMO = 1_500L * 1024 * 1024 }
 }

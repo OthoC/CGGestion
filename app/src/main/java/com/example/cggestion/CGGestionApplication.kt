@@ -8,6 +8,7 @@ import com.example.cggestion.data.repository.HojaCampoRepository
 import com.example.cggestion.data.repository.InventarioRepository
 import com.example.cggestion.data.repository.ClienteRepository
 import com.example.cggestion.util.evidencias.EvidenciaStorage
+import com.example.cggestion.util.firma.FirmaClienteStorage
 import com.example.cggestion.util.backup.BackupManager
 import com.example.cggestion.data.repository.ReportesRepository
 import com.example.cggestion.util.pdf.HojaCampoPdfGenerator
@@ -27,7 +28,8 @@ class CGGestionApplication : Application() {
     val repository get() = CotizacionRepository(database())
     val pdfGenerator by lazy { CotizacionPdfGenerator(this) }
     private val evidenciaStorage by lazy { EvidenciaStorage(applicationContext) }
-    val hojaCampoRepository get() = HojaCampoRepository(database(), evidenciaStorage)
+    private val firmaClienteStorage by lazy { FirmaClienteStorage(applicationContext) }
+    val hojaCampoRepository get() = HojaCampoRepository(database(), evidenciaStorage, firmaClienteStorage)
     val inventarioRepository get() = InventarioRepository(database())
     val clienteRepository get() = ClienteRepository(database())
     val backupManager by lazy { BackupManager(applicationContext, ::database, ::cerrarBaseDeDatos) }

@@ -28,7 +28,7 @@ import com.example.cggestion.data.local.dao.HojaCampoDao
 import com.example.cggestion.data.local.dao.EvidenciaDao
 import kotlin.math.roundToLong
 
-@Database(entities = [ClienteEntity::class, ProductoEntity::class, CotizacionEntity::class, ItemCotizacionEntity::class, HojaCampoEntity::class, MedicionesHojaCampoEntity::class, JornadaTrabajoEntity::class, EvidenciaEntity::class, MovimientoInventarioEntity::class, RepuestoUsadoEntity::class, ConsumoHojaInventarioEntity::class, EquipoEntity::class, MantenimientoEntity::class, UsuarioEntity::class], version = 12, exportSchema = false)
+@Database(entities = [ClienteEntity::class, ProductoEntity::class, CotizacionEntity::class, ItemCotizacionEntity::class, HojaCampoEntity::class, MedicionesHojaCampoEntity::class, JornadaTrabajoEntity::class, EvidenciaEntity::class, MovimientoInventarioEntity::class, RepuestoUsadoEntity::class, ConsumoHojaInventarioEntity::class, EquipoEntity::class, MantenimientoEntity::class, UsuarioEntity::class], version = 13, exportSchema = false)
 abstract class CGGestionDatabase : RoomDatabase() {
     abstract fun clienteDao(): ClienteDao
     abstract fun productoDao(): ProductoDao
@@ -54,7 +54,7 @@ abstract class CGGestionDatabase : RoomDatabase() {
                     }
                 }
             })
-            .addMigrations(migracion1a2(), migracion2a3(), migracion3a4(), migracion4a5(), migracion5a6(), migracion6a7(), migracion7a8(), migracion8a9(), migracion9a10(), migracion10a11(), migracion11a12()).build()
+            .addMigrations(migracion1a2(), migracion2a3(), migracion3a4(), migracion4a5(), migracion5a6(), migracion6a7(), migracion7a8(), migracion8a9(), migracion9a10(), migracion10a11(), migracion11a12(), migracion12a13()).build()
     fun migracion1a2()=object:Migration(1,2){override fun migrate(db:SupportSQLiteDatabase){
       db.execSQL("CREATE TABLE IF NOT EXISTS hojas_campo (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, numeroHoja TEXT NOT NULL, fecha INTEGER NOT NULL, clienteId INTEGER NOT NULL, cotizacionId INTEGER, estado TEXT NOT NULL, fechaCreacion INTEGER NOT NULL, fechaModificacion INTEGER NOT NULL, direccion TEXT NOT NULL, telefono TEXT NOT NULL, ordenTrabajo TEXT NOT NULL, tecnicos TEXT NOT NULL, alternadorMarca TEXT NOT NULL, alternadorModelo TEXT NOT NULL, alternadorSerie TEXT NOT NULL, rpm TEXT NOT NULL, kva TEXT NOT NULL, volt TEXT NOT NULL, kw TEXT NOT NULL, amp TEXT NOT NULL, hz TEXT NOT NULL, motorMarca TEXT NOT NULL, motorModelo TEXT NOT NULL, motorSerie TEXT NOT NULL, horometro TEXT NOT NULL, tipoTablero TEXT NOT NULL, trabajosRealizados TEXT NOT NULL, observaciones TEXT NOT NULL, horaInicioPruebas TEXT NOT NULL, horaFinPruebas TEXT NOT NULL, nombreClienteResponsable TEXT NOT NULL, estadoFirma TEXT NOT NULL, FOREIGN KEY(clienteId) REFERENCES clientes(id) ON DELETE RESTRICT, FOREIGN KEY(cotizacionId) REFERENCES cotizaciones(id) ON DELETE SET NULL)")
       db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_hojas_campo_numeroHoja ON hojas_campo(numeroHoja)");db.execSQL("CREATE INDEX IF NOT EXISTS index_hojas_campo_clienteId ON hojas_campo(clienteId)");db.execSQL("CREATE INDEX IF NOT EXISTS index_hojas_campo_cotizacionId ON hojas_campo(cotizacionId)")
@@ -146,6 +146,9 @@ abstract class CGGestionDatabase : RoomDatabase() {
     }}
     fun migracion11a12() = object : Migration(11, 12) { override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("DELETE FROM usuarios")
+    }}
+    fun migracion12a13() = object : Migration(12, 13) { override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE hojas_campo ADD COLUMN firmaClienteRuta TEXT")
     }}
     }
 }

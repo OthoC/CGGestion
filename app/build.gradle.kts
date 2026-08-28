@@ -27,8 +27,8 @@ android {
         applicationId = "com.example.cggestion"
         minSdk = 26
         targetSdk = 37
-        versionCode = 11
-        versionName = "1.7.0-beta"
+        versionCode = 12
+        versionName = "1.7.1-beta"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

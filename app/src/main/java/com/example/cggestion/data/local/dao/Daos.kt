@@ -82,6 +82,9 @@ interface CotizacionDao {
 @Dao interface HojaCampoDao {
  @Insert(onConflict=OnConflictStrategy.ABORT) suspend fun insertar(hoja:HojaCampoEntity):Long
  @Update suspend fun actualizar(hoja:HojaCampoEntity)
+ @Query("SELECT * FROM hojas_campo WHERE id = :id LIMIT 1") suspend fun porId(id: Long): HojaCampoEntity?
+ @Query("UPDATE hojas_campo SET firmaClienteRuta = :ruta, estadoFirma = :estado, fechaModificacion = :fecha WHERE id = :id")
+ suspend fun actualizarFirmaCliente(id: Long, ruta: String?, estado: String, fecha: Long = System.currentTimeMillis()): Int
  @Insert(onConflict=OnConflictStrategy.REPLACE) suspend fun guardarMediciones(mediciones:MedicionesHojaCampoEntity)
  @Insert suspend fun insertarRepuestos(items:List<RepuestoUsadoEntity>)
  @Insert suspend fun insertarJornadas(items:List<JornadaTrabajoEntity>)

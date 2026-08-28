@@ -18,8 +18,12 @@ import com.example.cggestion.data.local.entity.MovimientoInventarioEntity
 import com.example.cggestion.data.local.entity.EstadoHoja
 import com.example.cggestion.util.evidencias.ArchivoEvidencia
 import com.example.cggestion.util.evidencias.EvidenciaStorage
+import com.example.cggestion.util.firma.FirmaClienteStorage
+import com.example.cggestion.util.firma.TrazoFirma
 import android.net.Uri
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 data class ResultadoGuardarHoja(val id: Long, val numero: String)
 sealed interface PrepararHojaDesdeCotizacion {
@@ -28,7 +32,11 @@ sealed interface PrepararHojaDesdeCotizacion {
     data class Error(val mensaje: String) : PrepararHojaDesdeCotizacion
 }
 
-class HojaCampoRepository(private val database: CGGestionDatabase, private val storage: EvidenciaStorage) {
+class HojaCampoRepository(
+    private val database: CGGestionDatabase,
+    private val storage: EvidenciaStorage,
+    private val firmaStorage: FirmaClienteStorage
+) {
     private val hojas: HojaCampoDao = database.hojaCampoDao()
     private val clientes: ClienteDao = database.clienteDao()
 
@@ -40,6 +48,28 @@ class HojaCampoRepository(private val database: CGGestionDatabase, private val s
     fun evidencias(hojaCampoId: Long): Flow<List<EvidenciaEntity>> = database.evidenciaDao().porHoja(hojaCampoId)
     fun crearArchivoTemporal() = storage.crearTemporal()
     fun eliminarTemporal(ruta: String) = storage.eliminarTemporal(ruta)
+    fun existeFirmaCliente(ruta: String?): Boolean = firmaStorage.existe(ruta)
+
+    suspend fun guardarFirmaCliente(hojaCampoId: Long, trazos: List<TrazoFirma>): String {
+        val hoja = hojas.porId(hojaCampoId) ?: error("No se encontró la hoja de campo.")
+        val ruta = withContext(Dispatchers.IO) { firmaStorage.guardar(hoja.numeroHoja, trazos) }
+        database.withTransaction {
+            check(hojas.actualizarFirmaCliente(hojaCampoId, ruta, "FIRMADA") == 1) {
+                "No se pudo asociar la firma a la hoja."
+            }
+        }
+        return ruta
+    }
+
+    suspend fun eliminarFirmaCliente(hojaCampoId: Long) {
+        val hoja = hojas.porId(hojaCampoId) ?: error("No se encontró la hoja de campo.")
+        database.withTransaction {
+            check(hojas.actualizarFirmaCliente(hojaCampoId, null, "PENDIENTE") == 1) {
+                "No se pudo actualizar la hoja."
+            }
+        }
+        withContext(Dispatchers.IO) { firmaStorage.eliminar(hoja.firmaClienteRuta) }
+    }
     suspend fun actualizarEvidencia(evidencia: EvidenciaEntity) = database.evidenciaDao().actualizar(evidencia)
     suspend fun eliminarEvidencia(evidencia: EvidenciaEntity) = database.withTransaction {
         check(storage.eliminar(evidencia.rutaInterna)) { "No se pudo eliminar el archivo de la evidencia." }

@@ -14,6 +14,7 @@ import com.example.cggestion.data.local.entity.TipoEvidencia
 import com.example.cggestion.data.repository.HojaCampoRepository
 import com.example.cggestion.data.repository.PrepararHojaDesdeCotizacion
 import com.example.cggestion.data.HojaCampoValidaciones
+import com.example.cggestion.util.firma.TrazoFirma
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -26,6 +27,7 @@ data class HojaUi(
     val jornadas: List<JornadaTrabajoEntity> = emptyList(),
     val cargando: Boolean = false,
     val guardando: Boolean = false,
+    val procesandoFirma: Boolean = false,
     val tieneCambios: Boolean = false,
     val mantenimientoOrigenId: Long? = null,
     val mensaje: String? = null
@@ -154,6 +156,53 @@ class HojaCampoViewModel(private val repository: HojaCampoRepository) : ViewMode
         if (_ui.value.hoja.id != 0L) return true
         mensajeError("Guarda primero la hoja antes de añadir fotografías.")
         return false
+    }
+
+    fun guardarFirmaCliente(trazos: List<TrazoFirma>) {
+        val estado = _ui.value
+        if (estado.hoja.id == 0L || estado.procesandoFirma) {
+            if (estado.hoja.id == 0L) mensajeError("Guarda primero la hoja antes de registrar la firma.")
+            return
+        }
+        viewModelScope.launch {
+            _ui.value = _ui.value.copy(procesandoFirma = true, mensaje = null)
+            runCatching { repository.guardarFirmaCliente(estado.hoja.id, trazos) }
+                .onSuccess { ruta ->
+                    _ui.value = _ui.value.copy(
+                        hoja = _ui.value.hoja.copy(firmaClienteRuta = ruta, estadoFirma = "FIRMADA"),
+                        procesandoFirma = false,
+                        mensaje = "Firma del cliente guardada."
+                    )
+                }
+                .onFailure {
+                    _ui.value = _ui.value.copy(
+                        procesandoFirma = false,
+                        mensaje = "No se pudo guardar la firma del cliente."
+                    )
+                }
+        }
+    }
+
+    fun eliminarFirmaCliente() {
+        val estado = _ui.value
+        if (estado.hoja.id == 0L || estado.procesandoFirma) return
+        viewModelScope.launch {
+            _ui.value = _ui.value.copy(procesandoFirma = true, mensaje = null)
+            runCatching { repository.eliminarFirmaCliente(estado.hoja.id) }
+                .onSuccess {
+                    _ui.value = _ui.value.copy(
+                        hoja = _ui.value.hoja.copy(firmaClienteRuta = null, estadoFirma = "PENDIENTE"),
+                        procesandoFirma = false,
+                        mensaje = "Firma del cliente eliminada."
+                    )
+                }
+                .onFailure {
+                    _ui.value = _ui.value.copy(
+                        procesandoFirma = false,
+                        mensaje = "No se pudo eliminar la firma del cliente."
+                    )
+                }
+        }
     }
 
     fun cancelarCaptura(ruta: String) { repository.eliminarTemporal(ruta) }
